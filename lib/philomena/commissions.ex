@@ -239,7 +239,6 @@ defmodule Philomena.Commissions do
       {:error, %Ecto.Changeset{}}
 
   """
-
   def delete_item(%Item{} = item) do
     update =
       Commission

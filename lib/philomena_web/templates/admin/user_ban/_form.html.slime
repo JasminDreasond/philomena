@@ -20,9 +20,63 @@
     = error_tag f, :valid_until
 
   br
-  .field
-    => checkbox f, :enabled
-    = label f, :enabled
+
+  .block
+    .block__header
+      span.block__header__title Ban Options
+    br
+    .field
+      => checkbox f, :enabled, class: "ban-checkbox"
+      = label f, :enabled, "Ban everything (Complete Ban)", style: "font-weight: 900;"
+
+    .field
+      => checkbox f, :ban_upload_image, id: "ban-upload-image", class: "granular-ban-checkbox"
+      = label f, :ban_upload_image, "Upload images"
+
+    .field
+      => checkbox f, :ban_downvote_image, id: "ban-downvote-image", class: "granular-ban-checkbox"
+      = label f, :ban_downvote_image, "Downvote images"
+
+    .field
+      => checkbox f, :ban_upvote_image, id: "ban-upvote-image", class: "granular-ban-checkbox"
+      = label f, :ban_upvote_image, "Upvote images"
+
+    .field
+      => checkbox f, :ban_comment_images, id: "ban-comment-images", class: "granular-ban-checkbox"
+      = label f, :ban_comment_images, "Comment on images"
+
+    .field
+      => checkbox f, :ban_post_forum, id: "ban-post-forum", class: "granular-ban-checkbox"
+      = label f, :ban_post_forum, "Post in forums"
+
+    .field
+      => checkbox f, :ban_reply_forum, id: "ban-reply-forum", class: "granular-ban-checkbox"
+      = label f, :ban_reply_forum, "Reply in forums"
+
+    .field
+      => checkbox f, :ban_send_pm, id: "ban-send-pm", class: "granular-ban-checkbox"
+      = label f, :ban_send_pm, "Send PMs"
+
+    .field
+      => checkbox f, :ban_api_key, id: "ban-api-key", class: "granular-ban-checkbox"
+      = label f, :ban_api_key, "Use API key"
+
+    .field
+      => checkbox f, :ban_create_filters, id: "ban-create-filters", class: "granular-ban-checkbox"
+      = label f, :ban_create_filters, "Create filters"
+
+    .field
+      => checkbox f, :ban_create_galleries, id: "ban-create-galleries", class: "granular-ban-checkbox"
+      = label f, :ban_create_galleries, "Create galleries"
+
+    .field
+      => checkbox f, :ban_manage_tags, id: "ban-manage-tags", class: "granular-ban-checkbox"
+      = label f, :ban_manage_tags, "Manage tags"
+
+    .field
+      => checkbox f, :ban_commissions, id: "ban-commissions", class: "granular-ban-checkbox"
+      = label f, :ban_commissions, "Commissions"
+
   br
 
   = submit "Save Ban", class: "button"
