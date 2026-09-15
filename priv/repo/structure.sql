@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict dwaGfH4gXHoDJ58CulNCRa8mlYregygPFuqgo65HHOuXWRhjevwtRWlKTS8sKlF
+\restrict O6OYrjIYDwvGhgBIGh2SR1j95V8aVnMGs9WcuKijctXbT5ypaF3nbIkiah3iFpk
 
 -- Dumped from database version 18.4
 -- Dumped by pg_dump version 18.6
@@ -3675,7 +3675,7 @@ CREATE INDEX index_commissions_on_sheet_image_id ON public.commissions USING btr
 -- Name: index_commissions_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX index_commissions_on_user_id ON public.commissions USING btree (user_id);
+CREATE UNIQUE INDEX index_commissions_on_user_id ON public.commissions USING btree (user_id);
 
 
 --
@@ -4498,13 +4498,6 @@ CREATE INDEX index_user_ips_on_updated_at ON public.user_ips USING btree (update
 
 
 --
--- Name: index_user_ips_on_user_id_and_updated_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_user_ips_on_user_id_and_updated_at ON public.user_ips USING btree (user_id, updated_at DESC);
-
-
---
 -- Name: index_user_name_changes_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4771,6 +4764,13 @@ CREATE UNIQUE INDEX rules_position_index ON public.rules USING btree ("position"
 
 
 --
+-- Name: source_changes_fingerprint_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX source_changes_fingerprint_index ON public.source_changes USING btree (fingerprint);
+
+
+--
 -- Name: tag_change_tags_tag_change_id_tag_id_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4810,6 +4810,34 @@ CREATE INDEX tag_changes_ip_inet_ops_index ON public.tag_changes USING gist (ip 
 --
 
 CREATE INDEX tag_changes_user_id_index ON public.tag_changes USING btree (user_id);
+
+
+--
+-- Name: topics_forum_id_last_replied_to_at_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX topics_forum_id_last_replied_to_at_id_index ON public.topics USING btree (forum_id, last_replied_to_at DESC, id DESC);
+
+
+--
+-- Name: topics_forum_id_sticky_last_replied_to_at_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX topics_forum_id_sticky_last_replied_to_at_id_index ON public.topics USING btree (forum_id, sticky DESC, last_replied_to_at DESC, id DESC);
+
+
+--
+-- Name: user_fingerprints_user_id_updated_at_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX user_fingerprints_user_id_updated_at_id_index ON public.user_fingerprints USING btree (user_id, updated_at DESC, id DESC);
+
+
+--
+-- Name: user_ips_user_id_updated_at_id_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX user_ips_user_id_updated_at_id_index ON public.user_ips USING btree (user_id, updated_at DESC, id DESC);
 
 
 --
@@ -5487,7 +5515,7 @@ ALTER TABLE ONLY public.tags_implied_tags
 --
 
 ALTER TABLE ONLY public.image_intensities
-    ADD CONSTRAINT fk_rails_b861f027a7 FOREIGN KEY (image_id) REFERENCES public.images(id);
+    ADD CONSTRAINT fk_rails_b861f027a7 FOREIGN KEY (image_id) REFERENCES public.images(id) ON DELETE CASCADE;
 
 
 --
@@ -5998,7 +6026,7 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-\unrestrict dwaGfH4gXHoDJ58CulNCRa8mlYregygPFuqgo65HHOuXWRhjevwtRWlKTS8sKlF
+\unrestrict O6OYrjIYDwvGhgBIGh2SR1j95V8aVnMGs9WcuKijctXbT5ypaF3nbIkiah3iFpk
 
 INSERT INTO public."schema_migrations" (version) VALUES (20200503002523);
 INSERT INTO public."schema_migrations" (version) VALUES (20200607000511);
@@ -6041,8 +6069,7 @@ INSERT INTO public."schema_migrations" (version) VALUES (20260719123608);
 INSERT INTO public."schema_migrations" (version) VALUES (20260719123609);
 INSERT INTO public."schema_migrations" (version) VALUES (20260719123610);
 INSERT INTO public."schema_migrations" (version) VALUES (20260719123611);
-INSERT INTO public."schema_migrations" (version) VALUES (20260914172000);
-INSERT INTO public."schema_migrations" (version) VALUES (20260915145700);
-INSERT INTO public."schema_migrations" (version) VALUES (20260915145800);
-INSERT INTO public."schema_migrations" (version) VALUES (20260915231500);
+INSERT INTO public."schema_migrations" (version) VALUES (20260806180557);
+INSERT INTO public."schema_migrations" (version) VALUES (20260810212302);
+INSERT INTO public."schema_migrations" (version) VALUES (20260831235832);
 INSERT INTO public."schema_migrations" (version) VALUES (20260916000000);
