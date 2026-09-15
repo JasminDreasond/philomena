@@ -98,10 +98,9 @@ defmodule PhilomenaWeb.Profile.CommissionController do
   end
 
   def update(conn, %{"commission" => commission_params}) do
-    user = conn.assigns.current_user
     commission = conn.assigns.user.commission
 
-    case Commissions.update_commission(user, commission, commission_params) do
+    case Commissions.update_commission(commission, commission_params) do
       {:ok, _commission} ->
         conn
         |> put_flash(:info, "Commission successfully updated.")

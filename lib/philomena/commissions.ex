@@ -42,8 +42,8 @@ defmodule Philomena.Commissions do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_commission(user, attrs \\ %{}) when is_struct(user, Philomena.Users.User) do
-    if Bans.is_banned?(user, :commissions) do
+  def create_commission(user, attrs \\ %{}) do
+    if user && Bans.is_banned?(user, :commissions) do
       {:error, :banned}
     else
       Ecto.build_assoc(user, :commission)
@@ -93,28 +93,23 @@ defmodule Philomena.Commissions do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_commission(%Commission{} = commission, closing_user)
-      when is_struct(closing_user, Philomena.Users.User) do
-    if Bans.is_banned?(closing_user, :commissions) do
-      {:error, :banned}
-    else
-      Multi.new()
-      |> Multi.update_all(
-        :reports,
-        Reports.close_report_query(closing_user, commission_id: commission.id),
-        []
-      )
-      |> Multi.delete(:commission, commission)
-      |> Repo.transaction()
-      |> case do
-        {:ok, %{commission: commission, reports: {_count, reports}}} ->
-          Reports.reindex_reports(reports)
+  def delete_commission(%Commission{} = commission, closing_user) do
+    Multi.new()
+    |> Multi.update_all(
+      :reports,
+      Reports.close_report_query(closing_user, commission_id: commission.id),
+      []
+    )
+    |> Multi.delete(:commission, commission)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{commission: commission, reports: {_count, reports}}} ->
+        Reports.reindex_reports(reports)
 
-          {:ok, commission}
+        {:ok, commission}
 
-        error ->
-          error
-      end
+      error ->
+        error
     end
   end
 
@@ -191,30 +186,26 @@ defmodule Philomena.Commissions do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_item(user, commission, attrs \\ %{}) when is_struct(user, Philomena.Users.User) do
-    if Bans.is_banned?(user, :commissions) do
-      {:error, :banned}
-    else
-      changeset =
-        Ecto.build_assoc(commission, :items)
-        |> Item.changeset(attrs)
+  def create_item(commission, attrs \\ %{}) do
+    changeset =
+      Ecto.build_assoc(commission, :items)
+      |> Item.changeset(attrs)
 
-      update =
-        Commission
-        |> where(id: ^commission.id)
-        |> update(inc: [commission_items_count: 1])
+    update =
+      Commission
+      |> where(id: ^commission.id)
+      |> update(inc: [commission_items_count: 1])
 
-      Multi.new()
-      |> Multi.insert(:item, changeset)
-      |> Multi.update_all(:commission, update, [])
-      |> Repo.transaction()
-      |> case do
-        {:error, :item, changeset, _} ->
-          {:error, changeset}
+    Multi.new()
+    |> Multi.insert(:item, changeset)
+    |> Multi.update_all(:commission, update, [])
+    |> Repo.transaction()
+    |> case do
+      {:error, :item, changeset, _} ->
+        {:error, changeset}
 
-        result ->
-          result
-      end
+      result ->
+        result
     end
   end
 
@@ -230,14 +221,6 @@ defmodule Philomena.Commissions do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_item(user, %Item{} = item, attrs) when is_struct(user, Philomena.Users.User) do
-    if Bans.is_banned?(user, :commissions) do
-      {:error, :banned}
-    else
-      update_item(%Item{} = item, attrs)
-    end
-  end
-
   def update_item(%Item{} = item, attrs) do
     item
     |> Item.changeset(attrs)
@@ -256,13 +239,6 @@ defmodule Philomena.Commissions do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_item(user, %Item{} = item) when is_struct(user, Philomena.Users.User) do
-    if Bans.is_banned?(user, :commissions) do
-      {:error, :banned}
-    else
-      delete_item(%Item{} = item)
-    end
-  end
 
   def delete_item(%Item{} = item) do
     update =
