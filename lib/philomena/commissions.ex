@@ -64,7 +64,8 @@ defmodule Philomena.Commissions do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_commission(user, %Commission{} = commission, attrs) when is_struct(user, Philomena.Users.User) do
+  def update_commission(user, %Commission{} = commission, attrs)
+      when is_struct(user, Philomena.Users.User) do
     if Bans.is_banned?(user, :commissions) do
       {:error, :banned}
     else
@@ -92,7 +93,8 @@ defmodule Philomena.Commissions do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_commission(%Commission{} = commission, closing_user) when is_struct(closing_user, Philomena.Users.User) do
+  def delete_commission(%Commission{} = commission, closing_user)
+      when is_struct(closing_user, Philomena.Users.User) do
     if Bans.is_banned?(closing_user, :commissions) do
       {:error, :banned}
     else
@@ -207,11 +209,11 @@ defmodule Philomena.Commissions do
       |> Multi.update_all(:commission, update, [])
       |> Repo.transaction()
       |> case do
-      {:error, :item, changeset, _} ->
-        {:error, changeset}
+        {:error, :item, changeset, _} ->
+          {:error, changeset}
 
-      result ->
-        result
+        result ->
+          result
       end
     end
   end
@@ -268,10 +270,10 @@ defmodule Philomena.Commissions do
       |> where(id: ^item.commission_id)
       |> update(inc: [commission_items_count: -1])
 
-     Multi.new()
-     |> Multi.delete(:item, item)
-     |> Multi.update_all(:commission, update, [])
-     |> Repo.transaction()
+    Multi.new()
+    |> Multi.delete(:item, item)
+    |> Multi.update_all(:commission, update, [])
+    |> Repo.transaction()
   end
 
   @doc """

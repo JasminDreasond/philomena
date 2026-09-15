@@ -51,6 +51,7 @@ defmodule Philomena.Comments do
   """
   def create_comment(image, attribution, params \\ %{}) do
     user = attribution[:user]
+
     if user && Bans.is_banned?(user, :comment_images) do
       {:error, :banned}
     else

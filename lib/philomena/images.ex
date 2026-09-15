@@ -98,6 +98,7 @@ defmodule Philomena.Images do
           {:ok, image_upload()} | Ecto.Multi.failure()
   def create_image(attribution, attrs \\ %{}) do
     user = attribution[:user]
+
     if user && Bans.is_banned?(user, :upload_image) do
       {:error, :banned}
     else
@@ -138,7 +139,7 @@ defmodule Philomena.Images do
 
         result ->
           result
-        end
+      end
     end
   end
 
@@ -702,6 +703,7 @@ defmodule Philomena.Images do
 
   defp check_tag_change_limits_before_commit(image, attribution) do
     user = attribution[:user]
+
     if user && Bans.is_banned?(user, :manage_tags) do
       {:error, :banned}
     else

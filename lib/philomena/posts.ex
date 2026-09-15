@@ -52,6 +52,7 @@ defmodule Philomena.Posts do
   """
   def create_post(topic, attributes, params \\ %{}) do
     user = attributes[:user]
+
     if user && Bans.is_banned?(user, :reply_forum) do
       {:error, :banned}
     else

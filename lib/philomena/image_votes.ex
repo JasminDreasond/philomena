@@ -22,8 +22,8 @@ defmodule Philomena.ImageVotes do
       {:error, :banned}
     else
       vote =
-      %ImageVote{image_id: image.id, user_id: user.id, up: up}
-      |> ImageVote.changeset(%{})
+        %ImageVote{image_id: image.id, user_id: user.id, up: up}
+        |> ImageVote.changeset(%{})
 
       image_query =
         Image

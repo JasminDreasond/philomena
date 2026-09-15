@@ -341,13 +341,18 @@ defmodule Philomena.Bans do
   Checks if a user is banned for a specific granular reason.
   """
   def is_banned?(nil, _reason), do: false
+
   def is_banned?(user, reason) when is_atom(reason) do
     case find(user, nil, nil) do
-      nil -> false
+      nil ->
+        false
+
       %{type: "User"} = ban ->
         field = String.to_atom("ban_" <> Atom.to_string(reason))
         Map.get(ban, field, false)
-      _ -> false
+
+      _ ->
+        false
     end
   end
 end
