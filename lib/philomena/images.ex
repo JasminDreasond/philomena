@@ -39,6 +39,7 @@ defmodule Philomena.Images do
   alias Philomena.Galleries.Interaction
   alias Philomena.Users.User
   alias Philomena.Users
+  alias Philomena.Bans
 
   use Philomena.Subscriptions,
     on_delete: :clear_image_notification,
@@ -96,43 +97,48 @@ defmodule Philomena.Images do
   @spec create_image(Users.principal(), %{String.t() => any()}) ::
           {:ok, image_upload()} | Ecto.Multi.failure()
   def create_image(attribution, attrs \\ %{}) do
-    tags = Tags.get_or_create_tags(attrs["tag_input"])
-    sources = attrs["sources"]
+    user = attribution[:user]
+    if user && Bans.is_banned?(user, :upload_image) do
+      {:error, :banned}
+    else
+      tags = Tags.get_or_create_tags(attrs["tag_input"])
+      sources = attrs["sources"]
 
-    image =
-      %Image{}
-      |> Image.creation_changeset(attrs, attribution)
-      |> Image.source_changeset(attrs, [], sources)
-      |> Image.tag_changeset(attrs, [], tags)
-      |> Image.dnp_changeset(attribution[:user])
-      |> Uploader.analyze_upload(attrs)
+      image =
+        %Image{}
+        |> Image.creation_changeset(attrs, attribution)
+        |> Image.source_changeset(attrs, [], sources)
+        |> Image.tag_changeset(attrs, [], tags)
+        |> Image.dnp_changeset(attribution[:user])
+        |> Uploader.analyze_upload(attrs)
 
-    Multi.new()
-    |> Multi.insert(:image, image)
-    |> Multi.run(:added_tag_count, fn repo, %{image: image} ->
-      tag_ids = image.added_tags |> Enum.map(& &1.id)
+      Multi.new()
+      |> Multi.insert(:image, image)
+      |> Multi.run(:added_tag_count, fn repo, %{image: image} ->
+        tag_ids = image.added_tags |> Enum.map(& &1.id)
 
-      count = Tags.update_image_counts(repo, 1, tag_ids)
+        count = Tags.update_image_counts(repo, 1, tag_ids)
 
-      {:ok, count}
-    end)
-    |> maybe_subscribe_on(:image, attribution[:user], :watch_on_upload)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{image: image}} ->
-        upload_pid = async_upload(image, attrs["image"])
-        reindex_image(image)
-        Tags.reindex_tags(image.added_tags)
-        maybe_approve_image(image, attribution[:user])
+        {:ok, count}
+      end)
+      |> maybe_subscribe_on(:image, attribution[:user], :watch_on_upload)
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{image: image}} ->
+          upload_pid = async_upload(image, attrs["image"])
+          reindex_image(image)
+          Tags.reindex_tags(image.added_tags)
+          maybe_approve_image(image, attribution[:user])
 
-        # Return the upload PID along with the created image so that the caller
-        # can control the lifecycle of the upload if needed. It's useful, for
-        # example for the seeding process to know when to delete the temp file
-        # used for uploading.
-        {:ok, %{image: image, upload_pid: upload_pid}}
+          # Return the upload PID along with the created image so that the caller
+          # can control the lifecycle of the upload if needed. It's useful, for
+          # example for the seeding process to know when to delete the temp file
+          # used for uploading.
+          {:ok, %{image: image, upload_pid: upload_pid}}
 
-      result ->
-        result
+        result ->
+          result
+        end
     end
   end
 
@@ -695,20 +701,24 @@ defmodule Philomena.Images do
   end
 
   defp check_tag_change_limits_before_commit(image, attribution) do
-    tag_changed_count = length(image.added_tags) + length(image.removed_tags)
-    rating_changed = image.ratings_changed
     user = attribution[:user]
-    ip = attribution[:ip]
+    if user && Bans.is_banned?(user, :manage_tags) do
+      {:error, :banned}
+    else
+      tag_changed_count = length(image.added_tags) + length(image.removed_tags)
+      rating_changed = image.ratings_changed
+      ip = attribution[:ip]
 
-    cond do
-      Limits.limited_for_tag_count?(user, ip, tag_changed_count) ->
-        {:error, :limit_exceeded}
+      cond do
+        Limits.limited_for_tag_count?(user, ip, tag_changed_count) ->
+          {:error, :limit_exceeded}
 
-      rating_changed and Limits.limited_for_rating_count?(user, ip) ->
-        {:error, :limit_exceeded}
+        rating_changed and Limits.limited_for_rating_count?(user, ip) ->
+          {:error, :limit_exceeded}
 
-      true ->
-        {:ok, 0}
+        true ->
+          {:ok, 0}
+      end
     end
   end
 

@@ -19,6 +19,7 @@ defmodule Philomena.Comments do
   alias Philomena.Notifications
   alias Philomena.Versions
   alias Philomena.Reports
+  alias Philomena.Bans
 
   @doc """
   Gets a single comment.
@@ -49,24 +50,29 @@ defmodule Philomena.Comments do
 
   """
   def create_comment(image, attribution, params \\ %{}) do
-    comment =
-      Ecto.build_assoc(image, :comments)
-      |> Comment.creation_changeset(params, attribution)
+    user = attribution[:user]
+    if user && Bans.is_banned?(user, :comment_images) do
+      {:error, :banned}
+    else
+      comment =
+        Ecto.build_assoc(image, :comments)
+        |> Comment.creation_changeset(params, attribution)
 
-    image_query =
-      Image
-      |> where(id: ^image.id)
+      image_query =
+        Image
+        |> where(id: ^image.id)
 
-    image_lock_query =
-      lock(image_query, "FOR UPDATE")
+      image_lock_query =
+        lock(image_query, "FOR UPDATE")
 
-    Multi.new()
-    |> Multi.one(:image, image_lock_query)
-    |> Multi.insert(:comment, comment)
-    |> Multi.update_all(:update_image, image_query, inc: [comments_count: 1])
-    |> Multi.run(:notification, &notify_comment/2)
-    |> Images.maybe_subscribe_on(:image, attribution[:user], :watch_on_reply)
-    |> Repo.transaction()
+      Multi.new()
+      |> Multi.one(:image, image_lock_query)
+      |> Multi.insert(:comment, comment)
+      |> Multi.update_all(:update_image, image_query, inc: [comments_count: 1])
+      |> Multi.run(:notification, &notify_comment/2)
+      |> Images.maybe_subscribe_on(:image, attribution[:user], :watch_on_reply)
+      |> Repo.transaction()
+    end
   end
 
   defp notify_comment(_repo, %{image: image, comment: comment}) do

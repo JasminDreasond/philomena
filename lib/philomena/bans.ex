@@ -336,4 +336,18 @@ defmodule Philomena.Bans do
   def find(user, ip, fingerprint) do
     Finder.find(user, ip, fingerprint)
   end
+
+  @doc """
+  Checks if a user is banned for a specific granular reason.
+  """
+  def is_banned?(nil, _reason), do: false
+  def is_banned?(user, reason) when is_atom(reason) do
+    case find(user, nil, nil) do
+      nil -> false
+      %{type: "User"} = ban ->
+        field = String.to_atom("ban_" <> Atom.to_string(reason))
+        Map.get(ban, field, false)
+      _ -> false
+    end
+  end
 end

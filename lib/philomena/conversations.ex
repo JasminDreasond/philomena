@@ -10,6 +10,7 @@ defmodule Philomena.Conversations do
   alias Philomena.Conversations.Message
   alias Philomena.Reports
   alias Philomena.Users
+  alias Philomena.Bans
 
   @doc """
   Returns the number of unread conversations for the given user.
@@ -107,18 +108,22 @@ defmodule Philomena.Conversations do
 
   """
   def create_conversation(from, attrs \\ %{}) do
-    to = Users.get_user_by_name(attrs["recipient"])
+    if from && Bans.is_banned?(from, :send_pm) do
+      {:error, :banned}
+    else
+      to = Users.get_user_by_name(attrs["recipient"])
 
-    %Conversation{}
-    |> Conversation.creation_changeset(from, to, attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, conversation} ->
-        report_non_approved_message(hd(conversation.messages))
-        {:ok, conversation}
+      %Conversation{}
+      |> Conversation.creation_changeset(from, to, attrs)
+      |> Repo.insert()
+      |> case do
+        {:ok, conversation} ->
+          report_non_approved_message(hd(conversation.messages))
+          {:ok, conversation}
 
-      error ->
-        error
+        error ->
+          error
+      end
     end
   end
 

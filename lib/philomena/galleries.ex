@@ -16,6 +16,7 @@ defmodule Philomena.Galleries do
   alias Philomena.Notifications
   alias Philomena.Images
   alias Philomena.Reports
+  alias Philomena.Bans
 
   use Philomena.Subscriptions,
     on_delete: :clear_gallery_notification,
@@ -50,10 +51,14 @@ defmodule Philomena.Galleries do
 
   """
   def create_gallery(user, attrs \\ %{}) do
-    %Gallery{}
-    |> Gallery.creation_changeset(attrs, user)
-    |> Repo.insert()
-    |> reindex_after_update()
+    if Bans.is_banned?(user, :create_galleries) do
+      {:error, :banned}
+    else
+      %Gallery{}
+      |> Gallery.creation_changeset(attrs, user)
+      |> Repo.insert()
+      |> reindex_after_update()
+    end
   end
 
   @doc """

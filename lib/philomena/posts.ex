@@ -20,6 +20,7 @@ defmodule Philomena.Posts do
   alias Philomena.Notifications
   alias Philomena.Versions
   alias Philomena.Reports
+  alias Philomena.Bans
 
   @doc """
   Gets a single post.
@@ -50,61 +51,66 @@ defmodule Philomena.Posts do
 
   """
   def create_post(topic, attributes, params \\ %{}) do
-    now = DateTime.utc_now(:second)
+    user = attributes[:user]
+    if user && Bans.is_banned?(user, :reply_forum) do
+      {:error, :banned}
+    else
+      now = DateTime.utc_now(:second)
 
-    topic_query =
-      Topic
-      |> where(id: ^topic.id)
+      topic_query =
+        Topic
+        |> where(id: ^topic.id)
 
-    topic_lock_query =
-      topic_query
-      |> lock("FOR UPDATE")
+      topic_lock_query =
+        topic_query
+        |> lock("FOR UPDATE")
 
-    forum_query =
-      Forum
-      |> where(id: ^topic.forum_id)
+      forum_query =
+        Forum
+        |> where(id: ^topic.forum_id)
 
-    Multi.new()
-    |> Multi.one(:topic, topic_lock_query)
-    |> Multi.run(:post, fn repo, _ ->
-      last_position =
-        Post
-        |> where(topic_id: ^topic.id)
-        |> order_by(desc: :topic_position)
-        |> select([p], p.topic_position)
-        |> limit(1)
-        |> repo.one()
+      Multi.new()
+      |> Multi.one(:topic, topic_lock_query)
+      |> Multi.run(:post, fn repo, _ ->
+        last_position =
+          Post
+          |> where(topic_id: ^topic.id)
+          |> order_by(desc: :topic_position)
+          |> select([p], p.topic_position)
+          |> limit(1)
+          |> repo.one()
 
-      Ecto.build_assoc(topic, :posts, [topic_position: (last_position || -1) + 1] ++ attributes)
-      |> Post.creation_changeset(params, attributes)
-      |> repo.insert()
-    end)
-    |> Multi.run(:update_topic, fn repo, %{post: %{id: post_id}} ->
-      {count, nil} =
-        repo.update_all(topic_query,
-          inc: [post_count: 1],
-          set: [last_post_id: post_id, last_replied_to_at: now]
-        )
+        Ecto.build_assoc(topic, :posts, [topic_position: (last_position || -1) + 1] ++ attributes)
+        |> Post.creation_changeset(params, attributes)
+        |> repo.insert()
+      end)
+      |> Multi.run(:update_topic, fn repo, %{post: %{id: post_id}} ->
+        {count, nil} =
+          repo.update_all(topic_query,
+            inc: [post_count: 1],
+            set: [last_post_id: post_id, last_replied_to_at: now]
+          )
 
-      {:ok, count}
-    end)
-    |> Multi.run(:update_forum, fn repo, %{post: %{id: post_id}} ->
-      {count, nil} =
-        repo.update_all(forum_query, inc: [post_count: 1], set: [last_post_id: post_id])
+        {:ok, count}
+      end)
+      |> Multi.run(:update_forum, fn repo, %{post: %{id: post_id}} ->
+        {count, nil} =
+          repo.update_all(forum_query, inc: [post_count: 1], set: [last_post_id: post_id])
 
-      {:ok, count}
-    end)
-    |> Multi.run(:notification, &notify_post/2)
-    |> Topics.maybe_subscribe_on(:topic, attributes[:user], :watch_on_reply)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{post: post}} = result ->
-        reindex_post(post)
+        {:ok, count}
+      end)
+      |> Multi.run(:notification, &notify_post/2)
+      |> Topics.maybe_subscribe_on(:topic, attributes[:user], :watch_on_reply)
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{post: post}} = result ->
+          reindex_post(post)
 
-        result
+          result
 
-      error ->
-        error
+        error ->
+          error
+      end
     end
   end
 

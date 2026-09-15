@@ -5,6 +5,7 @@ defmodule Philomena.ImageVotes do
 
   import Ecto.Query, warn: false
   alias Ecto.Multi
+  alias Philomena.Bans
 
   alias Philomena.ImageVotes.ImageVote
   alias Philomena.UserStatistics
@@ -15,25 +16,31 @@ defmodule Philomena.ImageVotes do
 
   """
   def create_vote_transaction(image, user, up) do
-    vote =
+    reason = if up, do: :upvote_image, else: :downvote_image
+
+    if Bans.is_banned?(user, reason) do
+      {:error, :banned}
+    else
+      vote =
       %ImageVote{image_id: image.id, user_id: user.id, up: up}
       |> ImageVote.changeset(%{})
 
-    image_query =
-      Image
-      |> where(id: ^image.id)
+      image_query =
+        Image
+        |> where(id: ^image.id)
 
-    upvotes = if up, do: 1, else: 0
-    downvotes = if up, do: 0, else: 1
+      upvotes = if up, do: 1, else: 0
+      downvotes = if up, do: 0, else: 1
 
-    Multi.new()
-    |> Multi.insert(:vote, vote)
-    |> Multi.update_all(:inc_vote_count, image_query,
-      inc: [upvotes_count: upvotes, downvotes_count: downvotes, score: upvotes - downvotes]
-    )
-    |> Multi.run(:inc_vote_stat, fn _repo, _changes ->
-      UserStatistics.inc_stat(user, :image_votes_count, 1)
-    end)
+      Multi.new()
+      |> Multi.insert(:vote, vote)
+      |> Multi.update_all(:inc_vote_count, image_query,
+        inc: [upvotes_count: upvotes, downvotes_count: downvotes, score: upvotes - downvotes]
+      )
+      |> Multi.run(:inc_vote_stat, fn _repo, _changes ->
+        UserStatistics.inc_stat(user, :image_votes_count, 1)
+      end)
+    end
   end
 
   @doc """
