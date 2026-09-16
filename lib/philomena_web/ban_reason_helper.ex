@@ -146,21 +146,21 @@ defmodule PhilomenaWeb.BanReasonHelper do
 
   @doc false
   def has_action?(ban, action) do
-    # to_string/1 converte com segurança. Aceita tanto atoms quanto strings (:ban_fav_image ou "ban_fav_image")
+    # to_string/1 converts safely. Accepts both atoms and strings (:ban_fav_image or "ban_fav_image")
     reason = to_string(action)
 
     ban
     |> Map.get(:permitted_actions, [])
-    |> List.wrap()      # Garante que sempre será uma lista, mesmo se o valor for nil
-    |> List.flatten()   # Achata qualquer nível de aninhamento (listas dentro de listas viram uma lista plana)
+    # Ensures it is always a list, even if the value is nil
+    |> List.wrap()
+    # Flattens any level of nesting (lists within lists become a flat list)
+    |> List.flatten()
     |> Enum.any?(fn
-      # Se for o struct PermittedAction (ou qualquer mapa/struct que tenha a chave :action)
+      # If it is the PermittedAction struct (or any map/struct that has the :action key)
       %{action: permitted_action} -> permitted_action == reason
-
-      # Se a string da action estiver solta direto na lista, por algum motivo
+      # If the action string is loose directly in the list, for some reason
       permitted_action when is_binary(permitted_action) -> permitted_action == reason
-
-      # Se vier qualquer outra coisa que não faça sentido (nil, lista vazia, tuplas), ele só ignora e retorna false
+      # If anything else that doesn't make sense comes in (nil, empty list, tuples), it is ignored and returns false
       _ -> false
     end)
   end

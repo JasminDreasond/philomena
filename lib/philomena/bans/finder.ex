@@ -25,7 +25,7 @@ defmodule Philomena.Bans.Finder do
         {user, &user_query/2}
       ])
 
-    # Previne um FunctionClauseError caso não exista nenhum parâmetro válido
+    # Prevents a FunctionClauseError if no valid parameters exist
     case queries do
       [] ->
         nil
@@ -59,25 +59,35 @@ defmodule Philomena.Bans.Finder do
   end
 
   defp attach_permitted_actions(bans) when bans == [], do: []
+
   defp attach_permitted_actions(bans) do
-    # O uso de 'for' (comprehensions) é mais rápido e legível que Enum.filter |> Enum.map
     user_ban_ids = for %{type: @user, id: id} <- bans, do: id
     subnet_ban_ids = for %{type: @subnet, id: id} <- bans, do: id
     fingerprint_ban_ids = for %{type: @fingerprint, id: id} <- bans, do: id
 
     user_permitted =
       if user_ban_ids != [],
-        do: Repo.all(from pa in Philomena.Bans.PermittedAction, where: pa.user_ban_id in ^user_ban_ids),
+        do:
+          Repo.all(
+            from pa in Philomena.Bans.PermittedAction, where: pa.user_ban_id in ^user_ban_ids
+          ),
         else: []
 
     subnet_permitted =
       if subnet_ban_ids != [],
-        do: Repo.all(from pa in Philomena.Bans.PermittedAction, where: pa.subnet_ban_id in ^subnet_ban_ids),
+        do:
+          Repo.all(
+            from pa in Philomena.Bans.PermittedAction, where: pa.subnet_ban_id in ^subnet_ban_ids
+          ),
         else: []
 
     fingerprint_permitted =
       if fingerprint_ban_ids != [],
-        do: Repo.all(from pa in Philomena.Bans.PermittedAction, where: pa.fingerprint_ban_id in ^fingerprint_ban_ids),
+        do:
+          Repo.all(
+            from pa in Philomena.Bans.PermittedAction,
+              where: pa.fingerprint_ban_id in ^fingerprint_ban_ids
+          ),
         else: []
 
     user_permitted_map = Enum.group_by(user_permitted, & &1.user_ban_id)
