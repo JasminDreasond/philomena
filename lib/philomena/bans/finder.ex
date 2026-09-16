@@ -18,31 +18,21 @@ defmodule Philomena.Bans.Finder do
   Returns the first ban, if any, that matches the specified request attributes.
   """
   def find(user, ip, fingerprint) do
-    queries =
+    bans =
       generate_valid_queries([
         {ip, &subnet_query/2},
         {fingerprint, &fingerprint_query/2},
         {user, &user_query/2}
       ])
+      |> union_all_queries()
+      |> Repo.all()
+      |> attach_permitted_actions()
 
-    # Prevents a FunctionClauseError if no valid parameters exist
-    case queries do
-      [] ->
-        nil
-
-      _ ->
-        bans =
-          queries
-          |> union_all_queries()
-          |> Repo.all()
-          |> attach_permitted_actions()
-
-        # Don't return a fingerprint or subnet ban if the user is currently signed in.
-        if is_nil(user) do
-          Enum.at(bans, 0)
-        else
-          user_ban(bans)
-        end
+    # Don't return a fingerprint or subnet ban if the user is currently signed in.
+    if is_nil(user) do
+      Enum.at(bans, 0)
+    else
+      user_ban(bans)
     end
   end
 
