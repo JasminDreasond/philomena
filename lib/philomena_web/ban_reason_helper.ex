@@ -15,7 +15,7 @@ defmodule PhilomenaWeb.BanReasonHelper do
       {c, action_name}
       when c in ["PhilomenaWeb.ImageController", "PhilomenaWeb.Api.Json.ImageController"] and
              action_name in [:create, :new, :update] ->
-        :ban_upload_image
+        :upload_image
 
       # Send PM
       {c, action_name}
@@ -24,24 +24,24 @@ defmodule PhilomenaWeb.BanReasonHelper do
              "PhilomenaWeb.Conversation.MessageController"
            ] and
              action_name in [:create, :new] ->
-        :ban_send_pm
+        :send_pm
 
       # Comments
       {c, action_name}
       when c in ["PhilomenaWeb.CommentController", "PhilomenaWeb.Image.CommentController"] and
              action_name in [:create, :edit, :update] ->
-        :ban_comment_images
+        :comment_images
 
       # Forum Posts/Replies
       {c, action_name}
       when c in ["PhilomenaWeb.TopicController"] and
              action_name in [:create, :new, :update] ->
-        :ban_post_forum
+        :post_forum
 
       {c, action_name}
       when c in ["PhilomenaWeb.PostController", "PhilomenaWeb.Topic.PostController"] and
              action_name in [:create, :new, :edit, :update] ->
-        :ban_reply_forum
+        :reply_forum
 
       # Filters
       {c, action_name}
@@ -51,7 +51,7 @@ defmodule PhilomenaWeb.BanReasonHelper do
              "PhilomenaWeb.Filter.SpoilerController"
            ] and
              action_name in [:create, :delete] ->
-        :ban_create_filters
+        :manage_filters
 
       # Galleries
       {c, action_name}
@@ -61,13 +61,13 @@ defmodule PhilomenaWeb.BanReasonHelper do
              "PhilomenaWeb.Gallery.ImageController"
            ] and
              action_name in [:create, :new, :edit, :update] ->
-        :ban_galleries
+        :manage_galleries
 
       # Commissions
       {c, action_name}
       when c in ["PhilomenaWeb.Profile.CommissionController"] and
              action_name in [:create, :new, :edit, :update] ->
-        :ban_commissions
+        :manage_commissions
 
       # Voting (Upvote/Downvote)
       {c, action_name}
@@ -79,19 +79,19 @@ defmodule PhilomenaWeb.BanReasonHelper do
       {c, action_name}
       when c in ["PhilomenaWeb.Image.FaveController"] and
              action_name in [:create] ->
-        :ban_fav_image
+        :fav_image
 
       # Tag Management
       {c, action_name}
       when c in ["PhilomenaWeb.TagController", "PhilomenaWeb.Image.TagController"] and
              action_name in [:delete, :edit, :update] ->
-        :ban_manage_tags
+        :manage_tags
 
       # Source Management
       {c, action_name}
       when c in ["PhilomenaWeb.Image.SourceController"] and
              action_name in [:update] ->
-        :ban_manage_sources
+        :manage_sources
 
       _ ->
         nil
@@ -100,8 +100,8 @@ defmodule PhilomenaWeb.BanReasonHelper do
 
   defp determine_vote_ban(conn) do
     cond do
-      is_upvote?(conn) -> :ban_upvote_image
-      is_downvote?(conn) -> :ban_downvote_image
+      is_upvote?(conn) -> :upvote_image
+      is_downvote?(conn) -> :downvote_image
       true -> nil
     end
   end
@@ -115,20 +115,20 @@ defmodule PhilomenaWeb.BanReasonHelper do
   end
 
   @available_actions [
-    "ban_fav_image",
-    "ban_manage_sources",
-    "ban_upload_image",
-    "ban_downvote_image",
-    "ban_upvote_image",
-    "ban_comment_images",
-    "ban_post_forum",
-    "ban_reply_forum",
-    "ban_send_pm",
-    "ban_api_key",
-    "ban_create_filters",
-    "ban_galleries",
-    "ban_manage_tags",
-    "ban_commissions"
+    "fav_image",
+    "manage_sources",
+    "upload_image",
+    "downvote_image",
+    "upvote_image",
+    "comment_images",
+    "post_forum",
+    "reply_forum",
+    "send_pm",
+    "api_key",
+    "manage_filters",
+    "manage_galleries",
+    "manage_tags",
+    "manage_commissions"
   ]
 
   @doc false
@@ -146,7 +146,7 @@ defmodule PhilomenaWeb.BanReasonHelper do
 
   @doc false
   def has_action?(ban, action) do
-    # to_string/1 converts safely. Accepts both atoms and strings (:ban_fav_image or "ban_fav_image")
+    # to_string/1 converts safely. Accepts both atoms and strings (:fav_image or "fav_image")
     reason = to_string(action)
 
     ban
