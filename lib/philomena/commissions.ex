@@ -12,7 +12,6 @@ defmodule Philomena.Commissions do
   alias Philomena.Commissions.QueryBuilder
   alias Philomena.Commissions.SearchQuery
   alias Philomena.Reports
-  alias Philomena.Bans
 
   @doc """
   Gets a single commission.
@@ -43,13 +42,9 @@ defmodule Philomena.Commissions do
 
   """
   def create_commission(user, attrs \\ %{}) do
-    if user && Bans.is_banned?(user, :commissions) do
-      {:error, :banned}
-    else
-      Ecto.build_assoc(user, :commission)
-      |> Commission.changeset(attrs)
-      |> Repo.insert()
-    end
+    Ecto.build_assoc(user, :commission)
+    |> Commission.changeset(attrs)
+    |> Repo.insert()
   end
 
   @doc """
@@ -64,17 +59,6 @@ defmodule Philomena.Commissions do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_commission(user, %Commission{} = commission, attrs)
-      when is_struct(user, Philomena.Users.User) do
-    if Bans.is_banned?(user, :commissions) do
-      {:error, :banned}
-    else
-      commission
-      |> Commission.changeset(attrs)
-      |> Repo.update()
-    end
-  end
-
   def update_commission(%Commission{} = commission, attrs) do
     commission
     |> Commission.changeset(attrs)

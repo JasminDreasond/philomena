@@ -343,16 +343,15 @@ defmodule Philomena.Bans do
   def is_banned?(nil, _reason), do: false
 
   def is_banned?(user, reason) when is_atom(reason) do
-    case find(user, nil, nil) do
-      nil ->
-        false
+    is_banned?(user, reason, nil, nil)
+  end
 
-      %{type: "User"} = ban ->
-        field = String.to_atom("ban_" <> Atom.to_string(reason))
-        Map.get(ban, field, false)
+  def is_banned?(user, reason, ip, fingerprint) when is_atom(reason) do
+    bans = Finder.find(user, ip, fingerprint)
 
-      _ ->
-        false
-    end
+    Enum.any?(List.wrap(bans), fn ban ->
+      field = String.to_atom("ban_" <> Atom.to_string(reason))
+      Map.get(ban, field, false)
+    end)
   end
 end

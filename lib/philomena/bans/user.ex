@@ -26,7 +26,7 @@ defmodule Philomena.Bans.User do
     field :ban_send_pm, :boolean, default: false
     field :ban_api_key, :boolean, default: false
     field :ban_create_filters, :boolean, default: false
-    field :ban_create_galleries, :boolean, default: false
+    field :ban_galleries, :boolean, default: false
     field :ban_manage_tags, :boolean, default: false
     field :ban_commissions, :boolean, default: false
 
@@ -52,7 +52,7 @@ defmodule Philomena.Bans.User do
       :ban_send_pm,
       :ban_api_key,
       :ban_create_filters,
-      :ban_create_galleries,
+      :ban_galleries,
       :ban_manage_tags,
       :ban_commissions
     ])

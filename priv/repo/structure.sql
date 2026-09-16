@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict yr07eGpXgFoxZ4Pb5LhsKvx6bbzaXmnsMsa8RS3P8LNR2VKW5j9dsGrYoKtZewd
+\restrict fjXlNgiQp1oigFGaxdkEMgV6Nfoo2kpjDlSmoM9fGWb0q8xgmOFnIOTuWHMgYCr
 
 -- Dumped from database version 18.4
 -- Dumped by pg_dump version 18.6
@@ -619,6 +619,18 @@ CREATE TABLE public.fingerprint_bans (
     updated_at timestamp without time zone NOT NULL,
     banning_user_id integer NOT NULL,
     generated_ban_id character varying NOT NULL,
+    ban_upload_image boolean DEFAULT false NOT NULL,
+    ban_downvote_image boolean DEFAULT false NOT NULL,
+    ban_upvote_image boolean DEFAULT false NOT NULL,
+    ban_comment_images boolean DEFAULT false NOT NULL,
+    ban_post_forum boolean DEFAULT false NOT NULL,
+    ban_reply_forum boolean DEFAULT false NOT NULL,
+    ban_send_pm boolean DEFAULT false NOT NULL,
+    ban_api_key boolean DEFAULT false NOT NULL,
+    ban_create_filters boolean DEFAULT false NOT NULL,
+    ban_galleries boolean DEFAULT false CONSTRAINT fingerprint_bans_ban_create_galleries_not_null NOT NULL,
+    ban_manage_tags boolean DEFAULT false NOT NULL,
+    ban_commissions boolean DEFAULT false,
     CONSTRAINT fingerprint_ban_duration_must_be_valid CHECK ((valid_until < '4000-01-01 00:00:00'::timestamp without time zone))
 );
 
@@ -1720,6 +1732,18 @@ CREATE TABLE public.subnet_bans (
     banning_user_id integer NOT NULL,
     specification inet NOT NULL,
     generated_ban_id character varying NOT NULL,
+    ban_upload_image boolean DEFAULT false NOT NULL,
+    ban_downvote_image boolean DEFAULT false NOT NULL,
+    ban_upvote_image boolean DEFAULT false NOT NULL,
+    ban_comment_images boolean DEFAULT false NOT NULL,
+    ban_post_forum boolean DEFAULT false NOT NULL,
+    ban_reply_forum boolean DEFAULT false NOT NULL,
+    ban_send_pm boolean DEFAULT false NOT NULL,
+    ban_api_key boolean DEFAULT false NOT NULL,
+    ban_create_filters boolean DEFAULT false NOT NULL,
+    ban_galleries boolean DEFAULT false CONSTRAINT subnet_bans_ban_create_galleries_not_null NOT NULL,
+    ban_manage_tags boolean DEFAULT false NOT NULL,
+    ban_commissions boolean DEFAULT false,
     CONSTRAINT subnet_ban_duration_must_be_valid CHECK ((valid_until < '4000-01-01 00:00:00'::timestamp without time zone))
 );
 
@@ -1991,7 +2015,7 @@ CREATE TABLE public.user_bans (
     ban_send_pm boolean DEFAULT false NOT NULL,
     ban_api_key boolean DEFAULT false NOT NULL,
     ban_create_filters boolean DEFAULT false NOT NULL,
-    ban_create_galleries boolean DEFAULT false NOT NULL,
+    ban_galleries boolean DEFAULT false CONSTRAINT user_bans_ban_create_galleries_not_null NOT NULL,
     ban_manage_tags boolean DEFAULT false NOT NULL,
     ban_commissions boolean DEFAULT false NOT NULL,
     CONSTRAINT user_ban_duration_must_be_valid CHECK ((valid_until < '4000-01-01 00:00:00'::timestamp without time zone))
@@ -5936,7 +5960,7 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-\unrestrict yr07eGpXgFoxZ4Pb5LhsKvx6bbzaXmnsMsa8RS3P8LNR2VKW5j9dsGrYoKtZewd
+\unrestrict fjXlNgiQp1oigFGaxdkEMgV6Nfoo2kpjDlSmoM9fGWb0q8xgmOFnIOTuWHMgYCr
 
 INSERT INTO public."schema_migrations" (version) VALUES (20200503002523);
 INSERT INTO public."schema_migrations" (version) VALUES (20200607000511);
@@ -5980,3 +6004,6 @@ INSERT INTO public."schema_migrations" (version) VALUES (20260719123609);
 INSERT INTO public."schema_migrations" (version) VALUES (20260719123610);
 INSERT INTO public."schema_migrations" (version) VALUES (20260719123611);
 INSERT INTO public."schema_migrations" (version) VALUES (20260914172000);
+INSERT INTO public."schema_migrations" (version) VALUES (20260915145700);
+INSERT INTO public."schema_migrations" (version) VALUES (20260915145800);
+INSERT INTO public."schema_migrations" (version) VALUES (20260915231500);

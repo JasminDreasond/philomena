@@ -10,7 +10,6 @@ defmodule Philomena.Filters do
   alias Philomena.Filters
   alias PhilomenaQuery.Search
   alias Philomena.IndexWorker
-  alias Philomena.Bans
 
   @doc """
   Returns the list of filters.
@@ -69,14 +68,10 @@ defmodule Philomena.Filters do
 
   """
   def create_filter(user, attrs \\ %{}) do
-    if Bans.is_banned?(user, :create_filters) do
-      {:error, :banned}
-    else
-      %Filter{user_id: user.id}
-      |> Filter.creation_changeset(attrs)
-      |> Repo.insert()
-      |> reindex_after_update()
-    end
+    %Filter{user_id: user.id}
+    |> Filter.creation_changeset(attrs)
+    |> Repo.insert()
+    |> reindex_after_update()
   end
 
   @doc """

@@ -42,6 +42,18 @@ defmodule Philomena.Bans.Finder do
         reason: b.reason,
         valid_until: b.valid_until,
         generated_ban_id: b.generated_ban_id,
+        ban_upload_image: b.ban_upload_image,
+        ban_downvote_image: b.ban_downvote_image,
+        ban_upvote_image: b.ban_upvote_image,
+        ban_comment_images: b.ban_comment_images,
+        ban_post_forum: b.ban_post_forum,
+        ban_reply_forum: b.ban_reply_forum,
+        ban_send_pm: b.ban_send_pm,
+        ban_api_key: b.ban_api_key,
+        ban_create_filters: b.ban_create_filters,
+        ban_galleries: b.ban_galleries,
+        ban_manage_tags: b.ban_manage_tags,
+        ban_commissions: b.ban_commissions,
         type: type(^name, :string)
       }
   end

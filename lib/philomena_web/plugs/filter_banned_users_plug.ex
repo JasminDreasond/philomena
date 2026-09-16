@@ -24,13 +24,38 @@ defmodule PhilomenaWeb.FilterBannedUsersPlug do
     |> maybe_halt_no_fingerprint()
   end
 
-  defp maybe_halt(nil, conn, _redirect_url), do: conn
-
-  defp maybe_halt(_current_ban, conn, redirect_url) do
+  defp apply_ban_protocol(conn, redirect_url) do
     conn
     |> Controller.put_flash(:error, "You are currently banned.")
     |> Controller.redirect(external: redirect_url)
     |> Conn.halt()
+  end
+
+  defp maybe_halt(nil, conn, _redirect_url), do: conn
+
+  defp maybe_halt(bans, conn, redirect_url) when is_list(bans) do
+    should_halt =
+      Enum.any?(bans, fn current_ban ->
+        not PhilomenaWeb.BanReasonHelper.any_granular_ban?(current_ban) or
+          matches_granular_ban?(current_ban, conn)
+      end)
+
+    if should_halt, do: apply_ban_protocol(conn, redirect_url), else: conn
+  end
+
+  defp maybe_halt(current_ban, conn, redirect_url) do
+    should_halt =
+      not PhilomenaWeb.BanReasonHelper.any_granular_ban?(current_ban) or
+        matches_granular_ban?(current_ban, conn)
+
+    if should_halt, do: apply_ban_protocol(conn, redirect_url), else: conn
+  end
+
+  defp matches_granular_ban?(current_ban, conn) do
+    case PhilomenaWeb.BanReasonHelper.get_current_request_reason(conn) do
+      nil -> false
+      reason -> Map.get(current_ban, reason) == true
+    end
   end
 
   defp maybe_halt_no_fingerprint(%{halted: true} = conn), do: conn

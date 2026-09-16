@@ -21,13 +21,16 @@
 
   br
 
+  .field
+    => checkbox f, :enabled
+    = label f, :enabled
+
+  br
+
   .block
     .block__header
       span.block__header__title Ban Options
     br
-    .field
-      => checkbox f, :enabled, class: "ban-checkbox"
-      = label f, :enabled, "Ban everything (Complete Ban)", style: "font-weight: 900;"
 
     .field
       => checkbox f, :ban_upload_image, id: "ban-upload-image", class: "granular-ban-checkbox"
@@ -66,8 +69,8 @@
       = label f, :ban_create_filters, "Create filters"
 
     .field
-      => checkbox f, :ban_create_galleries, id: "ban-create-galleries", class: "granular-ban-checkbox"
-      = label f, :ban_create_galleries, "Create galleries"
+      => checkbox f, :ban_galleries, id: "ban-create-galleries", class: "granular-ban-checkbox"
+      = label f, :ban_galleries, "Manage galleries"
 
     .field
       => checkbox f, :ban_manage_tags, id: "ban-manage-tags", class: "granular-ban-checkbox"

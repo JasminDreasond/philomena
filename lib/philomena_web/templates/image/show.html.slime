@@ -16,7 +16,7 @@
 
   h4 Comments
   = cond do
-    - @conn.assigns.current_ban ->
+    - PhilomenaWeb.BanViewHelper.banned_from?(@conn, :ban_comment_images) ->
       = render PhilomenaWeb.BanView, "_ban_reason.html", conn: @conn
 
     - @image.commenting_allowed ->

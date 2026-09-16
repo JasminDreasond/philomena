@@ -13,7 +13,6 @@ defmodule Philomena.Topics do
   alias Philomena.Posts
   alias Philomena.UserStatistics
   alias Philomena.Notifications
-  alias Philomena.Bans
 
   use Philomena.Subscriptions,
     on_delete: :clear_topic_notification,
@@ -48,52 +47,46 @@ defmodule Philomena.Topics do
 
   """
   def create_topic(forum, attribution, attrs \\ %{}) do
-    user = attribution[:user]
+    now = DateTime.utc_now(:second)
 
-    if user && Bans.is_banned?(user, :post_forum) do
-      {:error, :banned}
-    else
-      now = DateTime.utc_now(:second)
+    topic =
+      %Topic{}
+      |> Topic.creation_changeset(attrs, forum, attribution)
 
-      topic =
-        %Topic{}
-        |> Topic.creation_changeset(attrs, forum, attribution)
+    Multi.new()
+    |> Multi.insert(:topic, topic)
+    |> Multi.run(:update_topic, fn repo, %{topic: topic} ->
+      {count, nil} =
+        Topic
+        |> where(id: ^topic.id)
+        |> repo.update_all(set: [last_post_id: hd(topic.posts).id, last_replied_to_at: now])
 
-      Multi.new()
-      |> Multi.insert(:topic, topic)
-      |> Multi.run(:update_topic, fn repo, %{topic: topic} ->
-        {count, nil} =
-          Topic
-          |> where(id: ^topic.id)
-          |> repo.update_all(set: [last_post_id: hd(topic.posts).id, last_replied_to_at: now])
+      {:ok, count}
+    end)
+    |> Multi.run(:update_forum, fn repo, %{topic: topic} ->
+      {count, nil} =
+        Forum
+        |> where(id: ^topic.forum_id)
+        |> repo.update_all(
+          inc: [post_count: 1, topic_count: 1],
+          set: [last_post_id: hd(topic.posts).id]
+        )
 
-        {:ok, count}
-      end)
-      |> Multi.run(:update_forum, fn repo, %{topic: topic} ->
-        {count, nil} =
-          Forum
-          |> where(id: ^topic.forum_id)
-          |> repo.update_all(
-            inc: [post_count: 1, topic_count: 1],
-            set: [last_post_id: hd(topic.posts).id]
-          )
+      {:ok, count}
+    end)
+    |> Multi.run(:notification, &notify_topic/2)
+    |> maybe_subscribe_on(:topic, attribution[:user], :watch_on_new_topic)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{topic: topic}} = result ->
+        UserStatistics.inc_stat(topic.user_id, :topics_count)
+        Posts.reindex_post(hd(topic.posts))
+        Posts.report_non_approved(hd(topic.posts))
 
-        {:ok, count}
-      end)
-      |> Multi.run(:notification, &notify_topic/2)
-      |> maybe_subscribe_on(:topic, attribution[:user], :watch_on_new_topic)
-      |> Repo.transaction()
-      |> case do
-        {:ok, %{topic: topic}} = result ->
-          UserStatistics.inc_stat(topic.user_id, :topics_count)
-          Posts.reindex_post(hd(topic.posts))
-          Posts.report_non_approved(hd(topic.posts))
+        result
 
-          result
-
-        error ->
-          error
-      end
+      error ->
+        error
     end
   end
 

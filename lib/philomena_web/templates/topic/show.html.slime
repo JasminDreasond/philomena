@@ -90,7 +90,7 @@ h1 = @topic.title
 
   / Post form
   = cond do
-    - @conn.assigns.current_ban ->
+    - PhilomenaWeb.BanViewHelper.banned_from?(@conn, :ban_reply_forum) ->
       = render PhilomenaWeb.BanView, "_ban_reason.html", conn: @conn
 
     - @topic.hidden_from_users ->

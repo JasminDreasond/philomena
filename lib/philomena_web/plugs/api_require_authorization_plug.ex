@@ -25,6 +25,13 @@ defmodule PhilomenaWeb.ApiRequireAuthorizationPlug do
     |> maybe_forbidden(Bans.find(user, conn.remote_ip, "NOTAPI"))
   end
 
+  defp apply_ban_protocol(conn) do
+    conn
+    |> Controller.put_status(:forbidden)
+    |> Controller.text("")
+    |> Conn.halt()
+  end
+
   defp maybe_unauthorized(conn, nil) do
     conn
     |> Conn.put_status(:unauthorized)
@@ -36,10 +43,28 @@ defmodule PhilomenaWeb.ApiRequireAuthorizationPlug do
 
   defp maybe_forbidden(conn, nil), do: conn
 
-  defp maybe_forbidden(conn, _current_ban) do
-    conn
-    |> Conn.put_status(:forbidden)
-    |> Controller.text("")
-    |> Conn.halt()
+  defp maybe_forbidden(conn, bans) when is_list(bans) do
+    should_halt =
+      Enum.any?(bans, fn current_ban ->
+        not PhilomenaWeb.BanReasonHelper.any_granular_ban?(current_ban) or
+          matches_granular_ban?(current_ban, conn)
+      end)
+
+    if should_halt, do: apply_ban_protocol(conn), else: conn
+  end
+
+  defp maybe_forbidden(conn, current_ban) do
+    should_halt =
+      not PhilomenaWeb.BanReasonHelper.any_granular_ban?(current_ban) or
+        matches_granular_ban?(current_ban, conn)
+
+    if should_halt, do: apply_ban_protocol(conn), else: conn
+  end
+
+  defp matches_granular_ban?(current_ban, conn) do
+    case PhilomenaWeb.BanReasonHelper.get_current_request_reason(conn) do
+      nil -> false
+      reason -> Map.get(current_ban, reason) == true
+    end
   end
 end
