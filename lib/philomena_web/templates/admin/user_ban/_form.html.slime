@@ -20,64 +20,62 @@
     = error_tag f, :valid_until
 
   br
-
   .field
     => checkbox f, :enabled
     = label f, :enabled
 
   br
-
   .block
     .block__header
       span.block__header__title Ban Options
-    br
+    p.help-text.instruction If no options are selected, default ban rules will be applied. If one or more options are selected, a partial ban will be applied based on your selections.
 
     .field
-      => checkbox f, :ban_upload_image, id: "ban-upload-image", class: "granular-ban-checkbox"
+      => checkbox f, :ban_upload_image, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_upload_image, "Upload images"
 
     .field
-      => checkbox f, :ban_downvote_image, id: "ban-downvote-image", class: "granular-ban-checkbox"
+      => checkbox f, :ban_downvote_image, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_downvote_image, "Downvote images"
 
     .field
-      => checkbox f, :ban_upvote_image, id: "ban-upvote-image", class: "granular-ban-checkbox"
+      => checkbox f, :ban_upvote_image, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_upvote_image, "Upvote images"
 
     .field
-      => checkbox f, :ban_comment_images, id: "ban-comment-images", class: "granular-ban-checkbox"
+      => checkbox f, :ban_comment_images, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_comment_images, "Comment on images"
 
     .field
-      => checkbox f, :ban_post_forum, id: "ban-post-forum", class: "granular-ban-checkbox"
+      => checkbox f, :ban_post_forum, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_post_forum, "Post in forums"
 
     .field
-      => checkbox f, :ban_reply_forum, id: "ban-reply-forum", class: "granular-ban-checkbox"
+      => checkbox f, :ban_reply_forum, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_reply_forum, "Reply in forums"
 
     .field
-      => checkbox f, :ban_send_pm, id: "ban-send-pm", class: "granular-ban-checkbox"
+      => checkbox f, :ban_send_pm, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_send_pm, "Send PMs"
 
     .field
-      => checkbox f, :ban_api_key, id: "ban-api-key", class: "granular-ban-checkbox"
+      => checkbox f, :ban_api_key, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_api_key, "Use API key"
 
     .field
-      => checkbox f, :ban_create_filters, id: "ban-create-filters", class: "granular-ban-checkbox"
+      => checkbox f, :ban_create_filters, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_create_filters, "Create filters"
 
     .field
-      => checkbox f, :ban_galleries, id: "ban-create-galleries", class: "granular-ban-checkbox"
+      => checkbox f, :ban_galleries, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_galleries, "Manage galleries"
 
     .field
-      => checkbox f, :ban_manage_tags, id: "ban-manage-tags", class: "granular-ban-checkbox"
+      => checkbox f, :ban_manage_tags, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_manage_tags, "Manage tags"
 
     .field
-      => checkbox f, :ban_commissions, id: "ban-commissions", class: "granular-ban-checkbox"
+      => checkbox f, :ban_commissions, class: "granular-ban granular-ban-checkbox"
       = label f, :ban_commissions, "Commissions"
 
   br
