@@ -57,7 +57,7 @@ defmodule Philomena.Bans do
   """
   def create_fingerprint(creator, attrs \\ %{}) do
     %Fingerprint{banning_user_id: creator.id}
-    |> Fingerprint.changeset(attrs)
+    |> Fingerprint.changeset(transform_permitted_actions(attrs))
     |> Repo.insert()
   end
 
@@ -75,7 +75,7 @@ defmodule Philomena.Bans do
   """
   def update_fingerprint(%Fingerprint{} = fingerprint, attrs) do
     fingerprint
-    |> Fingerprint.changeset(attrs)
+    |> Fingerprint.changeset(transform_permitted_actions(attrs))
     |> Repo.update()
   end
 
@@ -151,7 +151,7 @@ defmodule Philomena.Bans do
   """
   def create_subnet(creator, attrs \\ %{}) do
     %Subnet{banning_user_id: creator.id}
-    |> Subnet.changeset(attrs)
+    |> Subnet.changeset(transform_permitted_actions(attrs))
     |> Repo.insert()
   end
 
@@ -169,7 +169,7 @@ defmodule Philomena.Bans do
   """
   def update_subnet(%Subnet{} = subnet, attrs) do
     subnet
-    |> Subnet.changeset(attrs)
+    |> Subnet.changeset(transform_permitted_actions(attrs))
     |> Repo.update()
   end
 
@@ -246,7 +246,7 @@ defmodule Philomena.Bans do
   def create_user(creator, attrs \\ %{}) do
     changeset =
       %User{banning_user_id: creator.id}
-      |> User.changeset(attrs)
+      |> User.changeset(transform_permitted_actions(attrs))
 
     Multi.new()
     |> Multi.insert(:user_ban, changeset)
@@ -279,7 +279,7 @@ defmodule Philomena.Bans do
   """
   def update_user(%User{} = user, attrs) do
     user
-    |> User.changeset(attrs)
+    |> User.changeset(transform_permitted_actions(attrs))
     |> Repo.update()
     |> case do
       {:ok, user} ->
@@ -350,8 +350,32 @@ defmodule Philomena.Bans do
     bans = Finder.find(user, ip, fingerprint)
 
     Enum.any?(List.wrap(bans), fn ban ->
-      field = String.to_atom("ban_" <> Atom.to_string(reason))
-      Map.get(ban, field, false)
+      if PhilomenaWeb.BanReasonHelper.any_granular_ban?(ban) do
+        PhilomenaWeb.BanReasonHelper.has_action?(ban, reason)
+      else
+        true
+      end
     end)
   end
+
+  defp transform_permitted_actions(attrs) when is_map(attrs) do
+    case Map.get(attrs, "permitted_actions") || Map.get(attrs, :permitted_actions) do
+      nil ->
+        attrs
+
+      actions when is_list(actions) ->
+        transformed =
+          Enum.map(actions, fn
+            action when is_atom(action) -> %{action: Atom.to_string(action)}
+            action when is_binary(action) -> %{action: action}
+            %{} = action -> action
+            _ -> nil
+          end)
+          |> Enum.reject(&is_nil/1)
+
+        Map.put(attrs, "permitted_actions", transformed)
+    end
+  end
+
+  defp transform_permitted_actions(attrs), do: attrs
 end

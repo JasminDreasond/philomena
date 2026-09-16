@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict fjXlNgiQp1oigFGaxdkEMgV6Nfoo2kpjDlSmoM9fGWb0q8xgmOFnIOTuWHMgYCr
+\restrict dwaGfH4gXHoDJ58CulNCRa8mlYregygPFuqgo65HHOuXWRhjevwtRWlKTS8sKlF
 
 -- Dumped from database version 18.4
 -- Dumped by pg_dump version 18.6
@@ -197,6 +197,41 @@ CREATE SEQUENCE public.badges_id_seq
 --
 
 ALTER SEQUENCE public.badges_id_seq OWNED BY public.badges.id;
+
+
+--
+-- Name: ban_permitted_actions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.ban_permitted_actions (
+    id bigint NOT NULL,
+    user_ban_id bigint,
+    subnet_ban_id bigint,
+    fingerprint_ban_id bigint,
+    action text NOT NULL,
+    inserted_at timestamp(0) without time zone NOT NULL,
+    updated_at timestamp(0) without time zone NOT NULL,
+    CONSTRAINT num_nonnulls CHECK ((num_nonnulls(user_ban_id, subnet_ban_id, fingerprint_ban_id) = 1))
+);
+
+
+--
+-- Name: ban_permitted_actions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.ban_permitted_actions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: ban_permitted_actions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.ban_permitted_actions_id_seq OWNED BY public.ban_permitted_actions.id;
 
 
 --
@@ -619,18 +654,6 @@ CREATE TABLE public.fingerprint_bans (
     updated_at timestamp without time zone NOT NULL,
     banning_user_id integer NOT NULL,
     generated_ban_id character varying NOT NULL,
-    ban_upload_image boolean DEFAULT false NOT NULL,
-    ban_downvote_image boolean DEFAULT false NOT NULL,
-    ban_upvote_image boolean DEFAULT false NOT NULL,
-    ban_comment_images boolean DEFAULT false NOT NULL,
-    ban_post_forum boolean DEFAULT false NOT NULL,
-    ban_reply_forum boolean DEFAULT false NOT NULL,
-    ban_send_pm boolean DEFAULT false NOT NULL,
-    ban_api_key boolean DEFAULT false NOT NULL,
-    ban_create_filters boolean DEFAULT false NOT NULL,
-    ban_galleries boolean DEFAULT false CONSTRAINT fingerprint_bans_ban_create_galleries_not_null NOT NULL,
-    ban_manage_tags boolean DEFAULT false NOT NULL,
-    ban_commissions boolean DEFAULT false,
     CONSTRAINT fingerprint_ban_duration_must_be_valid CHECK ((valid_until < '4000-01-01 00:00:00'::timestamp without time zone))
 );
 
@@ -1732,18 +1755,6 @@ CREATE TABLE public.subnet_bans (
     banning_user_id integer NOT NULL,
     specification inet NOT NULL,
     generated_ban_id character varying NOT NULL,
-    ban_upload_image boolean DEFAULT false NOT NULL,
-    ban_downvote_image boolean DEFAULT false NOT NULL,
-    ban_upvote_image boolean DEFAULT false NOT NULL,
-    ban_comment_images boolean DEFAULT false NOT NULL,
-    ban_post_forum boolean DEFAULT false NOT NULL,
-    ban_reply_forum boolean DEFAULT false NOT NULL,
-    ban_send_pm boolean DEFAULT false NOT NULL,
-    ban_api_key boolean DEFAULT false NOT NULL,
-    ban_create_filters boolean DEFAULT false NOT NULL,
-    ban_galleries boolean DEFAULT false CONSTRAINT subnet_bans_ban_create_galleries_not_null NOT NULL,
-    ban_manage_tags boolean DEFAULT false NOT NULL,
-    ban_commissions boolean DEFAULT false,
     CONSTRAINT subnet_ban_duration_must_be_valid CHECK ((valid_until < '4000-01-01 00:00:00'::timestamp without time zone))
 );
 
@@ -2006,18 +2017,6 @@ CREATE TABLE public.user_bans (
     banning_user_id integer NOT NULL,
     generated_ban_id character varying NOT NULL,
     override_ip_ban boolean DEFAULT false NOT NULL,
-    ban_upload_image boolean DEFAULT false NOT NULL,
-    ban_downvote_image boolean DEFAULT false NOT NULL,
-    ban_upvote_image boolean DEFAULT false NOT NULL,
-    ban_comment_images boolean DEFAULT false NOT NULL,
-    ban_post_forum boolean DEFAULT false NOT NULL,
-    ban_reply_forum boolean DEFAULT false NOT NULL,
-    ban_send_pm boolean DEFAULT false NOT NULL,
-    ban_api_key boolean DEFAULT false NOT NULL,
-    ban_create_filters boolean DEFAULT false NOT NULL,
-    ban_galleries boolean DEFAULT false CONSTRAINT user_bans_ban_create_galleries_not_null NOT NULL,
-    ban_manage_tags boolean DEFAULT false NOT NULL,
-    ban_commissions boolean DEFAULT false NOT NULL,
     CONSTRAINT user_ban_duration_must_be_valid CHECK ((valid_until < '4000-01-01 00:00:00'::timestamp without time zone))
 );
 
@@ -2440,6 +2439,13 @@ ALTER TABLE ONLY public.badges ALTER COLUMN id SET DEFAULT nextval('public.badge
 
 
 --
+-- Name: ban_permitted_actions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ban_permitted_actions ALTER COLUMN id SET DEFAULT nextval('public.ban_permitted_actions_id_seq'::regclass);
+
+
+--
 -- Name: channels id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2812,6 +2818,14 @@ ALTER TABLE ONLY public.badge_awards
 
 ALTER TABLE ONLY public.badges
     ADD CONSTRAINT badges_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ban_permitted_actions ban_permitted_actions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ban_permitted_actions
+    ADD CONSTRAINT ban_permitted_actions_pkey PRIMARY KEY (id);
 
 
 --
@@ -4813,6 +4827,30 @@ CREATE INDEX user_tokens_user_id_index ON public.user_tokens USING btree (user_i
 
 
 --
+-- Name: ban_permitted_actions ban_permitted_actions_fingerprint_ban_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ban_permitted_actions
+    ADD CONSTRAINT ban_permitted_actions_fingerprint_ban_id_fkey FOREIGN KEY (fingerprint_ban_id) REFERENCES public.fingerprint_bans(id) ON DELETE CASCADE;
+
+
+--
+-- Name: ban_permitted_actions ban_permitted_actions_subnet_ban_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ban_permitted_actions
+    ADD CONSTRAINT ban_permitted_actions_subnet_ban_id_fkey FOREIGN KEY (subnet_ban_id) REFERENCES public.subnet_bans(id) ON DELETE CASCADE;
+
+
+--
+-- Name: ban_permitted_actions ban_permitted_actions_user_ban_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.ban_permitted_actions
+    ADD CONSTRAINT ban_permitted_actions_user_ban_id_fkey FOREIGN KEY (user_ban_id) REFERENCES public.user_bans(id) ON DELETE CASCADE;
+
+
+--
 -- Name: channel_live_notifications channel_live_notifications_channel_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5960,7 +5998,7 @@ ALTER TABLE ONLY public.users
 -- PostgreSQL database dump complete
 --
 
-\unrestrict fjXlNgiQp1oigFGaxdkEMgV6Nfoo2kpjDlSmoM9fGWb0q8xgmOFnIOTuWHMgYCr
+\unrestrict dwaGfH4gXHoDJ58CulNCRa8mlYregygPFuqgo65HHOuXWRhjevwtRWlKTS8sKlF
 
 INSERT INTO public."schema_migrations" (version) VALUES (20200503002523);
 INSERT INTO public."schema_migrations" (version) VALUES (20200607000511);
@@ -6007,3 +6045,4 @@ INSERT INTO public."schema_migrations" (version) VALUES (20260914172000);
 INSERT INTO public."schema_migrations" (version) VALUES (20260915145700);
 INSERT INTO public."schema_migrations" (version) VALUES (20260915145800);
 INSERT INTO public."schema_migrations" (version) VALUES (20260915231500);
+INSERT INTO public."schema_migrations" (version) VALUES (20260916000000);

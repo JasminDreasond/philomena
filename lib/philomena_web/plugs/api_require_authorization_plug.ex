@@ -27,7 +27,7 @@ defmodule PhilomenaWeb.ApiRequireAuthorizationPlug do
 
   defp apply_ban_protocol(conn) do
     conn
-    |> Controller.put_status(:forbidden)
+    |> Conn.put_status(:forbidden)
     |> Controller.text("")
     |> Conn.halt()
   end
@@ -64,7 +64,7 @@ defmodule PhilomenaWeb.ApiRequireAuthorizationPlug do
   defp matches_granular_ban?(current_ban, conn) do
     case PhilomenaWeb.BanReasonHelper.get_current_request_reason(conn) do
       nil -> false
-      reason -> Map.get(current_ban, reason) == true
+      reason -> PhilomenaWeb.BanReasonHelper.has_action?(current_ban, reason)
     end
   end
 end

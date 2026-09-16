@@ -18,20 +18,31 @@ defmodule Philomena.Bans.Finder do
   Returns the first ban, if any, that matches the specified request attributes.
   """
   def find(user, ip, fingerprint) do
-    bans =
+    queries =
       generate_valid_queries([
         {ip, &subnet_query/2},
         {fingerprint, &fingerprint_query/2},
         {user, &user_query/2}
       ])
-      |> union_all_queries()
-      |> Repo.all()
 
-    # Don't return a fingerprint or subnet ban if the user is currently signed in.
-    if is_nil(user) do
-      Enum.at(bans, 0)
-    else
-      user_ban(bans)
+    # Previne um FunctionClauseError caso não exista nenhum parâmetro válido
+    case queries do
+      [] ->
+        nil
+
+      _ ->
+        bans =
+          queries
+          |> union_all_queries()
+          |> Repo.all()
+          |> attach_permitted_actions()
+
+        # Don't return a fingerprint or subnet ban if the user is currently signed in.
+        if is_nil(user) do
+          Enum.at(bans, 0)
+        else
+          user_ban(bans)
+        end
     end
   end
 
@@ -39,23 +50,50 @@ defmodule Philomena.Bans.Finder do
     from b in schema,
       where: b.enabled and b.valid_until > ^now,
       select: %{
+        id: b.id,
         reason: b.reason,
         valid_until: b.valid_until,
         generated_ban_id: b.generated_ban_id,
-        ban_upload_image: b.ban_upload_image,
-        ban_downvote_image: b.ban_downvote_image,
-        ban_upvote_image: b.ban_upvote_image,
-        ban_comment_images: b.ban_comment_images,
-        ban_post_forum: b.ban_post_forum,
-        ban_reply_forum: b.ban_reply_forum,
-        ban_send_pm: b.ban_send_pm,
-        ban_api_key: b.ban_api_key,
-        ban_create_filters: b.ban_create_filters,
-        ban_galleries: b.ban_galleries,
-        ban_manage_tags: b.ban_manage_tags,
-        ban_commissions: b.ban_commissions,
         type: type(^name, :string)
       }
+  end
+
+  defp attach_permitted_actions(bans) when bans == [], do: []
+  defp attach_permitted_actions(bans) do
+    # O uso de 'for' (comprehensions) é mais rápido e legível que Enum.filter |> Enum.map
+    user_ban_ids = for %{type: @user, id: id} <- bans, do: id
+    subnet_ban_ids = for %{type: @subnet, id: id} <- bans, do: id
+    fingerprint_ban_ids = for %{type: @fingerprint, id: id} <- bans, do: id
+
+    user_permitted =
+      if user_ban_ids != [],
+        do: Repo.all(from pa in Philomena.Bans.PermittedAction, where: pa.user_ban_id in ^user_ban_ids),
+        else: []
+
+    subnet_permitted =
+      if subnet_ban_ids != [],
+        do: Repo.all(from pa in Philomena.Bans.PermittedAction, where: pa.subnet_ban_id in ^subnet_ban_ids),
+        else: []
+
+    fingerprint_permitted =
+      if fingerprint_ban_ids != [],
+        do: Repo.all(from pa in Philomena.Bans.PermittedAction, where: pa.fingerprint_ban_id in ^fingerprint_ban_ids),
+        else: []
+
+    user_permitted_map = Enum.group_by(user_permitted, & &1.user_ban_id)
+    subnet_permitted_map = Enum.group_by(subnet_permitted, & &1.subnet_ban_id)
+    fingerprint_permitted_map = Enum.group_by(fingerprint_permitted, & &1.fingerprint_ban_id)
+
+    Enum.map(bans, fn ban ->
+      actions =
+        case ban.type do
+          @user -> Map.get(user_permitted_map, ban.id, [])
+          @subnet -> Map.get(subnet_permitted_map, ban.id, [])
+          @fingerprint -> Map.get(fingerprint_permitted_map, ban.id, [])
+        end
+
+      Map.put(ban, :permitted_actions, actions)
+    end)
   end
 
   defp fingerprint_query(fingerprint, now) do

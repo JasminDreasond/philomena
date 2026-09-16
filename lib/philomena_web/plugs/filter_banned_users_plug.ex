@@ -54,7 +54,7 @@ defmodule PhilomenaWeb.FilterBannedUsersPlug do
   defp matches_granular_ban?(current_ban, conn) do
     case PhilomenaWeb.BanReasonHelper.get_current_request_reason(conn) do
       nil -> false
-      reason -> Map.get(current_ban, reason) == true
+      reason -> PhilomenaWeb.BanReasonHelper.has_action?(current_ban, reason)
     end
   end
 

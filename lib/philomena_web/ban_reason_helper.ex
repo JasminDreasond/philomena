@@ -19,7 +19,10 @@ defmodule PhilomenaWeb.BanReasonHelper do
 
       # Send PM
       {c, action_name}
-      when c in ["PhilomenaWeb.ConversationController", "PhilomenaWeb.Conversation.MessageController"] and
+      when c in [
+             "PhilomenaWeb.ConversationController",
+             "PhilomenaWeb.Conversation.MessageController"
+           ] and
              action_name in [:create, :new] ->
         :ban_send_pm
 
@@ -42,13 +45,21 @@ defmodule PhilomenaWeb.BanReasonHelper do
 
       # Filters
       {c, action_name}
-      when c in ["PhilomenaWeb.Image.HideController", "PhilomenaWeb.Filter.HideController", "PhilomenaWeb.Filter.SpoilerController"] and
+      when c in [
+             "PhilomenaWeb.Image.HideController",
+             "PhilomenaWeb.Filter.HideController",
+             "PhilomenaWeb.Filter.SpoilerController"
+           ] and
              action_name in [:create, :delete] ->
         :ban_create_filters
 
       # Galleries
       {c, action_name}
-      when c in ["PhilomenaWeb.GalleryController", "PhilomenaWeb.Gallery.OrderController", "PhilomenaWeb.Gallery.ImageController"] and
+      when c in [
+             "PhilomenaWeb.GalleryController",
+             "PhilomenaWeb.Gallery.OrderController",
+             "PhilomenaWeb.Gallery.ImageController"
+           ] and
              action_name in [:create, :new, :edit, :update] ->
         :ban_galleries
 
@@ -96,32 +107,61 @@ defmodule PhilomenaWeb.BanReasonHelper do
   end
 
   defp is_upvote?(conn) do
-    # In VoteController.create, it uses params["up"]
-    # In FaveController.create, it seems to be an upvote by default (it calls create_fave and then create_vote with true)
-    conn.params["up"] == true or conn.params["up"] == "true"
+    conn.params["up"] in [true, "true"]
   end
 
   defp is_downvote?(conn) do
-    # If it's not an upvote, we assume downvote for these controllers if they are in the list
-    conn.params["up"] == false or conn.params["up"] == "false"
+    conn.params["up"] in [false, "false"]
+  end
+
+  @available_actions [
+    "ban_fav_image",
+    "ban_manage_sources",
+    "ban_upload_image",
+    "ban_downvote_image",
+    "ban_upvote_image",
+    "ban_comment_images",
+    "ban_post_forum",
+    "ban_reply_forum",
+    "ban_send_pm",
+    "ban_api_key",
+    "ban_create_filters",
+    "ban_galleries",
+    "ban_manage_tags",
+    "ban_commissions"
+  ]
+
+  @doc false
+  def available_actions do
+    @available_actions
   end
 
   @doc false
   def any_granular_ban?(ban) do
-    [
-      :ban_upload_image,
-      :ban_downvote_image,
-      :ban_upvote_image,
-      :ban_comment_images,
-      :ban_post_forum,
-      :ban_reply_forum,
-      :ban_send_pm,
-      :ban_api_key,
-      :ban_create_filters,
-      :ban_galleries,
-      :ban_manage_tags,
-      :ban_commissions
-    ]
-    |> Enum.any?(fn field -> Map.get(ban, field) == true end)
+    !Enum.empty?(Map.get(ban, :permitted_actions, []))
+  end
+
+  @doc false
+  def has_action?(nil, _action), do: false
+
+  @doc false
+  def has_action?(ban, action) do
+    # to_string/1 converte com segurança. Aceita tanto atoms quanto strings (:ban_fav_image ou "ban_fav_image")
+    reason = to_string(action)
+
+    ban
+    |> Map.get(:permitted_actions, [])
+    |> List.wrap()      # Garante que sempre será uma lista, mesmo se o valor for nil
+    |> List.flatten()   # Achata qualquer nível de aninhamento (listas dentro de listas viram uma lista plana)
+    |> Enum.any?(fn
+      # Se for o struct PermittedAction (ou qualquer mapa/struct que tenha a chave :action)
+      %{action: permitted_action} -> permitted_action == reason
+
+      # Se a string da action estiver solta direto na lista, por algum motivo
+      permitted_action when is_binary(permitted_action) -> permitted_action == reason
+
+      # Se vier qualquer outra coisa que não faça sentido (nil, lista vazia, tuplas), ele só ignora e retorna false
+      _ -> false
+    end)
   end
 end

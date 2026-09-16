@@ -7,7 +7,12 @@ defmodule PhilomenaWeb.Admin.UserBanController do
   import Ecto.Query
 
   plug :verify_authorized
-  plug :load_resource, model: Bans.User, only: [:edit, :update, :delete], preload: :user
+
+  plug :load_resource,
+    model: Bans.User,
+    only: [:edit, :update, :delete],
+    preload: [:user, :permitted_actions]
+
   plug :check_can_delete when action in [:delete]
 
   def index(conn, %{"bq" => q}) when is_binary(q) do
