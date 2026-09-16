@@ -26,7 +26,7 @@ defmodule PhilomenaWeb.FilterBannedUsersPlug do
 
   defp apply_ban_protocol(conn, redirect_url) do
     conn
-    |> Controller.put_flash(:error, "You are currently banned.")
+    |> Controller.put_flash(:error, "Your account is currently limited.")
     |> Controller.redirect(external: redirect_url)
     |> Conn.halt()
   end
