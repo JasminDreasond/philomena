@@ -23,7 +23,7 @@ defmodule PhilomenaWeb.FilterBannedUsersPlug do
   end
 
   @doc """
-  Emits the ban response: flash "You are currently banned." plus an external
+  Emits the ban response: flash "Your account is currently limited." plus an external
   redirect to `conn.assigns.referrer`, then halt.
 
   Shared with `PhilomenaWeb.FallbackController` so the context-driven
