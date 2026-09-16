@@ -5,7 +5,6 @@ defmodule Philomena.ImageVotes do
 
   import Ecto.Query, warn: false
   alias Ecto.Multi
-  alias Philomena.Bans
 
   alias Philomena.ImageVotes.ImageVote
   alias Philomena.UserStatistics

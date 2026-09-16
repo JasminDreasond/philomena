@@ -24,7 +24,6 @@ defmodule PhilomenaWeb.BanViewHelper do
     not BanReasonHelper.any_granular_ban?(ban)
   end
 
-
   # =======================================================================
   # 2. Detect Universal Ban OR Specific Granular Ban
   # =======================================================================

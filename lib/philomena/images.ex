@@ -695,9 +695,9 @@ defmodule Philomena.Images do
   end
 
   defp check_tag_change_limits_before_commit(image, attribution) do
-    user = attribution[:user]
     tag_changed_count = length(image.added_tags) + length(image.removed_tags)
     rating_changed = image.ratings_changed
+    user = attribution[:user]
     ip = attribution[:ip]
 
     cond do

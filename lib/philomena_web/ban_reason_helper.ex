@@ -29,11 +29,13 @@ defmodule PhilomenaWeb.BanReasonHelper do
         :ban_comment_images
 
       # Forum Posts/Replies
-      {c, action_name} when c in [PhilomenaWeb.TopicController] and
+      {c, action_name}
+      when c in [PhilomenaWeb.TopicController] and
              action_name in [:create, :new, :update] ->
         :ban_post_forum
 
-      {c, action_name} when c in [PhilomenaWeb.PostController] and
+      {c, action_name}
+      when c in [PhilomenaWeb.PostController] and
              action_name in [:create, :new, :update] ->
         :ban_reply_forum
 
@@ -51,11 +53,14 @@ defmodule PhilomenaWeb.BanReasonHelper do
 
       # Voting (Upvote/Downvote)
       {c, action_name}
-      when c in [PhilomenaWeb.Image.VoteController, PhilomenaWeb.Image.FaveController] and action_name in [:create, :delete] ->
+      when c in [PhilomenaWeb.Image.VoteController, PhilomenaWeb.Image.FaveController] and
+             action_name in [:create, :delete] ->
         determine_vote_ban(conn)
 
       # Tag Management
-      {c, action_name} when c in [PhilomenaWeb.TagController, PhilomenaWeb.Image.TagController] and action_name in [:delete, :edit, :update] ->
+      {c, action_name}
+      when c in [PhilomenaWeb.TagController, PhilomenaWeb.Image.TagController] and
+             action_name in [:delete, :edit, :update] ->
         :ban_manage_tags
 
       _ ->

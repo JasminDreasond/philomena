@@ -27,6 +27,7 @@ defmodule PhilomenaWeb.ApiTokenPlug do
 
   defp check_api_ban(conn) do
     user = conn.assigns.current_user
+
     if user && Bans.is_banned?(user, :api_key) do
       conn
       |> Conn.put_status(:forbidden)
