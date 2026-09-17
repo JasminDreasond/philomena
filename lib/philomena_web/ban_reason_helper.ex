@@ -4,99 +4,570 @@ defmodule PhilomenaWeb.BanReasonHelper do
   """
 
   @available_actions %{
-    "channel_manager" => %{title: "channel_manager", description: "", category: "", default_value: false},
-    "show_user_donations" => %{title: "show_user_donations", description: "", category: "", default_value: false},
-    "create_donation" => %{title: "create_donation", description: "", category: "", default_value: false},
-    "dnp_entry" => %{title: "dnp_entry", description: "", category: "", default_value: false},
-    "dnp_entry_transition" => %{title: "dnp_entry_transition", description: "", category: "", default_value: false},
-    "badge_manager" => %{title: "badge_manager", description: "", category: "", default_value: false},
-    "award_manager" => %{title: "award_manager", description: "", category: "", default_value: false},
-    "fingerprint_ban_manager" => %{title: "fingerprint_ban_manager", description: "", category: "", default_value: false},
-    "subnet_ban_manager" => %{title: "subnet_ban_manager", description: "", category: "", default_value: false},
-    "user_ban_manager" => %{title: "user_ban_manager", description: "", category: "", default_value: false},
-    "registration" => %{title: "registration", description: "", category: "", default_value: false},
-    "delete_deactivation" => %{title: "delete_deactivation", description: "", category: "", default_value: false},
-    "edit_profile_description" => %{title: "edit_profile_description", description: "", category: "", default_value: false},
-    "edit_profile_avatar" => %{title: "edit_profile_avatar", description: "", category: "", default_value: false},
-    "delete_profile_avatar" => %{title: "delete_profile_avatar", description: "", category: "", default_value: false},
-    "edit_profile_name" => %{title: "edit_profile_name", description: "", category: "", default_value: false},
-    "edit_user" => %{title: "edit_user", description: "", category: "", default_value: false},
-    "user_activation_manager" => %{title: "user_activation_manager", description: "", category: "", default_value: false},
-    "delete_user_api_key" => %{title: "delete_user_api_key", description: "", category: "", default_value: false},
-    "delete_user_avatar" => %{title: "delete_user_avatar", description: "", category: "", default_value: false},
-    "delete_user_downvotes" => %{title: "delete_user_downvotes", description: "", category: "", default_value: false},
-    "new_user_erase" => %{title: "new_user_erase", description: "", category: "", default_value: false},
-    "user_force_filter" => %{title: "user_force_filter", description: "", category: "", default_value: false},
-    "create_user_unlock" => %{title: "create_user_unlock", description: "", category: "", default_value: false},
-    "user_verification_manager" => %{title: "user_verification_manager", description: "", category: "", default_value: false},
-    "delete_user_votes" => %{title: "delete_user_votes", description: "", category: "", default_value: false},
-    "create_user_wipe" => %{title: "create_user_wipe", description: "", category: "", default_value: false},
-    "profile_scratchpad_manager" => %{title: "profile_scratchpad_manager", description: "", category: "", default_value: false},
-    "erase_source_change" => %{title: "erase_source_change", description: "", category: "", default_value: false},
-    "duplicate_report" => %{title: "duplicate_report", description: "", category: "", default_value: false},
-    "duplicate_report_accept" => %{title: "duplicate_report_accept", description: "", category: "", default_value: false},
-    "duplicate_report_accept_reverse" => %{title: "duplicate_report_accept_reverse", description: "", category: "", default_value: false},
-    "duplicate_report_accept_claim" => %{title: "duplicate_report_accept_claim", description: "", category: "", default_value: false},
-    "delete_duplicate_report_claim" => %{title: "delete_duplicate_report_claim", description: "", category: "", default_value: false},
-    "duplicate_report_reject" => %{title: "duplicate_report_reject", description: "", category: "", default_value: false},
-    "advert" => %{title: "advert", description: "", category: "", default_value: false},
-    "polls" => %{title: "polls", description: "", category: "", default_value: false},
-    "report" => %{title: "report", description: "", category: "", default_value: false},
-    "poll_votes" => %{title: "poll_votes", description: "", category: "", default_value: false},
-    "create_artist_link" => %{title: "create_artist_link", description: "", category: "", default_value: false},
-    "new_artist_link" => %{title: "new_artist_link", description: "", category: "", default_value: false},
-    "edit_artist_link" => %{title: "edit_artist_link", description: "", category: "", default_value: false},
-    "update_artist_link" => %{title: "update_artist_link", description: "", category: "", default_value: false},
-    "create_artist_link_verification" => %{title: "create_artist_link_verification", description: "", category: "", default_value: false},
-    "create_artist_link_reject" => %{title: "create_artist_link_reject", description: "", category: "", default_value: false},
-    "create_artist_link_contact" => %{title: "create_artist_link_contact", description: "", category: "", default_value: false},
-    "image_comment" => %{title: "image_comment", description: "", category: "", default_value: false},
-    "image_comment_approve" => %{title: "image_comment_approve", description: "", category: "", default_value: false},
-    "image_comment_delete" => %{title: "image_comment_delete", description: "", category: "", default_value: false},
-    "image_comment_hide" => %{title: "image_comment_hide", description: "", category: "", default_value: false},
-    "create_conversation" => %{title: "create_conversation", description: "", category: "", default_value: false},
-    "create_message" => %{title: "create_message", description: "", category: "", default_value: false},
-    "manage_commissions" => %{title: "manage_commissions", description: "", category: "", default_value: false},
-    "manage_filters" => %{title: "manage_filters", description: "", category: "", default_value: false},
-    "forum_manager" => %{title: "forum_manager", description: "", category: "", default_value: false},
-    "topic_manager" => %{title: "topic_manager", description: "", category: "", default_value: false},
-    "post_manager" => %{title: "post_manager", description: "", category: "", default_value: false},
-    "mod_notes" => %{title: "mod_notes", description: "", category: "", default_value: false},
-    "static_pages" => %{title: "static_pages", description: "", category: "", default_value: false},
-    "site_notices" => %{title: "site_notices", description: "", category: "", default_value: false},
-    "rule_manager" => %{title: "rule_manager", description: "", category: "", default_value: false},
-    "gallery_manager" => %{title: "gallery_manager", description: "", category: "", default_value: false},
-    "tag_manager" => %{title: "tag_manager", description: "", category: "", default_value: false},
-    "image_interaction" => %{title: "image_interaction", description: "", category: "", default_value: false},
-    "comment_changeset_for" => %{title: "comment_changeset_for", description: "", category: "", default_value: false},
-    "image_changeset" => %{title: "image_changeset", description: "", category: "", default_value: false},
-    "upload_image" => %{title: "upload_image", description: "", category: "", default_value: false},
-    "image_aprove" => %{title: "image_aprove", description: "", category: "", default_value: false},
-    "image_feature" => %{title: "image_feature", description: "", category: "", default_value: false},
-    "image_destroy" => %{title: "image_destroy", description: "", category: "", default_value: false},
-    "image_comment_lock" => %{title: "image_comment_lock", description: "", category: "", default_value: false},
-    "image_description_lock" => %{title: "image_description_lock", description: "", category: "", default_value: false},
-    "image_tag_lock" => %{title: "image_tag_lock", description: "", category: "", default_value: false},
-    "load_hidable_image" => %{title: "load_hidable_image", description: "", category: "", default_value: false},
-    "image_repair" => %{title: "image_repair", description: "", category: "", default_value: false},
-    "image_hide" => %{title: "image_hide", description: "", category: "", default_value: false},
-    "delete_user_image_vote" => %{title: "delete_user_image_vote", description: "", category: "", default_value: false},
-    "delete_image_hash" => %{title: "delete_image_hash", description: "", category: "", default_value: false},
-    "update_image_scratchpad" => %{title: "update_image_scratchpad", description: "", category: "", default_value: false},
-    "delete_image_source_history" => %{title: "delete_image_source_history", description: "", category: "", default_value: false},
-    "update_image_file" => %{title: "update_image_file", description: "", category: "", default_value: false},
-    "update_image_description" => %{title: "update_image_description", description: "", category: "", default_value: false},
-    "update_image_sources" => %{title: "update_image_sources", description: "", category: "", default_value: false},
-    "update_image_locked_tags" => %{title: "update_image_locked_tags", description: "", category: "", default_value: false},
-    "update_image_tags" => %{title: "update_image_tags", description: "", category: "", default_value: false},
-    "update_image_uploader" => %{title: "update_image_uploader", description: "", category: "", default_value: false},
-    "update_image_anonymous" => %{title: "update_image_anonymous", description: "", category: "", default_value: false},
-    "image_user_hide" => %{title: "image_user_hide", description: "", category: "", default_value: false},
-    "image_fav" => %{title: "image_fav", description: "", category: "", default_value: false},
-    "image_vote_manager" => %{title: "image_vote_manager", description: "", category: "", default_value: false},
-    "image_add_upvote" => %{title: "image_add_upvote", description: "", category: "", default_value: false},
-    "image_add_downvote" => %{title: "image_add_downvote", description: "", category: "", default_value: false}
+    "channel_manager" => %{
+      title: "Channel Manager",
+      description: "",
+      category: "System",
+      default_value: false
+    },
+    "show_user_donations" => %{
+      title: "Show User Donations",
+      description: "",
+      category: "Finance",
+      default_value: false
+    },
+    "create_donation" => %{
+      title: "Create Donation",
+      description: "",
+      category: "Finance",
+      default_value: false
+    },
+    "dnp_entry" => %{
+      title: "DNP Entry",
+      description: "",
+      category: "System",
+      default_value: false
+    },
+    "dnp_entry_transition" => %{
+      title: "DNP Entry Transition",
+      description: "",
+      category: "System",
+      default_value: false
+    },
+    "badge_manager" => %{
+      title: "Badge Manager",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "award_manager" => %{
+      title: "Award Manager",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "fingerprint_ban_manager" => %{
+      title: "Fingerprint Ban Manager",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "subnet_ban_manager" => %{
+      title: "Subnet Ban Manager",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "user_ban_manager" => %{
+      title: "User Ban Manager",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "registration" => %{
+      title: "Registration",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "delete_deactivation" => %{
+      title: "Delete Deactivation",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "edit_profile_description" => %{
+      title: "Edit Profile Description",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "edit_profile_avatar" => %{
+      title: "Edit Profile Avatar",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "delete_profile_avatar" => %{
+      title: "Delete Profile Avatar",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "edit_profile_name" => %{
+      title: "Edit Profile Name",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "edit_user" => %{
+      title: "Edit User",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "user_activation_manager" => %{
+      title: "User Activation Manager",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "delete_user_api_key" => %{
+      title: "Delete User API Key",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "delete_user_avatar" => %{
+      title: "Delete User Avatar",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "delete_user_downvotes" => %{
+      title: "Delete User Downvotes",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "new_user_erase" => %{
+      title: "New User Erase",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "user_force_filter" => %{
+      title: "User Force Filter",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "create_user_unlock" => %{
+      title: "Create User Unlock",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "user_verification_manager" => %{
+      title: "User Verification Manager",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "delete_user_votes" => %{
+      title: "Delete User Votes",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "create_user_wipe" => %{
+      title: "Create User Wipe",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "profile_scratchpad_manager" => %{
+      title: "Profile Scratchpad Manager",
+      description: "",
+      category: "System",
+      default_value: false
+    },
+    "erase_source_change" => %{
+      title: "Erase Source Change",
+      description: "",
+      category: "System",
+      default_value: false
+    },
+    "duplicate_report" => %{
+      title: "Duplicate Report",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "duplicate_report_accept" => %{
+      title: "Duplicate Report Accept",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "duplicate_report_accept_reverse" => %{
+      title: "Duplicate Report Accept Reverse",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "duplicate_report_accept_claim" => %{
+      title: "Duplicate Report Accept Claim",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "delete_duplicate_report_claim" => %{
+      title: "Delete Duplicate Report Claim",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "duplicate_report_reject" => %{
+      title: "Duplicate Report Reject",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "advert" => %{
+      title: "Advert",
+      description: "",
+      category: "System",
+      default_value: false
+    },
+    "polls" => %{
+      title: "Polls",
+      description: "",
+      category: "Social",
+      default_value: false
+    },
+    "report" => %{
+      title: "Report",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "poll_votes" => %{
+      title: "Poll Votes",
+      description: "",
+      category: "Social",
+      default_value: false
+    },
+    "create_artist_link" => %{
+      title: "Create Artist Link",
+      description: "",
+      category: "Artist Management",
+      default_value: false
+    },
+    "new_artist_link" => %{
+      title: "New Artist Link",
+      description: "",
+      category: "Artist Management",
+      default_value: false
+    },
+    "edit_artist_link" => %{
+      title: "Edit Artist Link",
+      description: "",
+      category: "Artist Management",
+      default_value: false
+    },
+    "update_artist_link" => %{
+      title: "Update Artist Link",
+      description: "",
+      category: "Artist Management",
+      default_value: false
+    },
+    "create_artist_link_verification" => %{
+      title: "Create Artist Link Verification",
+      description: "",
+      category: "Artist Management",
+      default_value: false
+    },
+    "create_artist_link_reject" => %{
+      title: "Create Artist Link Reject",
+      description: "",
+      category: "Artist Management",
+      default_value: false
+    },
+    "create_artist_link_contact" => %{
+      title: "Create Artist Link Contact",
+      description: "",
+      category: "Artist Management",
+      default_value: false
+    },
+    "image_comment" => %{
+      title: "Image Comment",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_comment_approve" => %{
+      title: "Image Comment Approve",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_comment_delete" => %{
+      title: "Image Comment Delete",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_comment_hide" => %{
+      title: "Image Comment Hide",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "create_conversation" => %{
+      title: "Create Conversation",
+      description: "",
+      category: "Social",
+      default_value: false
+    },
+    "create_message" => %{
+      title: "Create Message",
+      description: "",
+      category: "Social",
+      default_value: false
+    },
+    "manage_commissions" => %{
+      title: "Manage Commissions",
+      description: "",
+      category: "Finance",
+      default_value: false
+    },
+    "manage_filters" => %{
+      title: "Manage Filters",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "forum_manager" => %{
+      title: "Forum Manager",
+      description: "",
+      category: "Social",
+      default_value: false
+    },
+    "topic_manager" => %{
+      title: "Topic Manager",
+      description: "",
+      category: "Social",
+      default_value: false
+    },
+    "post_manager" => %{
+      title: "Post Manager",
+      description: "",
+      category: "Social",
+      default_value: false
+    },
+    "mod_notes" => %{
+      title: "Mod Notes",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "static_pages" => %{
+      title: "Static Pages",
+      description: "",
+      category: "System",
+      default_value: false
+    },
+    "site_notices" => %{
+      title: "Site Notices",
+      description: "",
+      category: "System",
+      default_value: false
+    },
+    "rule_manager" => %{
+      title: "Rule Manager",
+      description: "",
+      category: "Moderation",
+      default_value: false
+    },
+    "gallery_manager" => %{
+      title: "Gallery Manager",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "tag_manager" => %{
+      title: "Tag Manager",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_interaction" => %{
+      title: "Image Interaction",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "comment_changeset_for" => %{
+      title: "Comment Changeset For",
+      description: "",
+      category: "Social",
+      default_value: false
+    },
+    "image_changeset" => %{
+      title: "Image Changeset",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "upload_image" => %{
+      title: "Upload Image",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_aprove" => %{
+      title: "Image Approve",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_feature" => %{
+      title: "Image Feature",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_destroy" => %{
+      title: "Image Destroy",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_comment_lock" => %{
+      title: "Image Comment Lock",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_description_lock" => %{
+      title: "Image Description Lock",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_tag_lock" => %{
+      title: "Image Tag Lock",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "load_hidable_image" => %{
+      title: "Load Hidable Image",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_repair" => %{
+      title: "Image Repair",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_hide" => %{
+      title: "Image Hide",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "delete_user_image_vote" => %{
+      title: "Delete User Image Vote",
+      description: "",
+      category: "User Management",
+      default_value: false
+    },
+    "delete_image_hash" => %{
+      title: "Delete Image Hash",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "update_image_scratchpad" => %{
+      title: "Update Image Scratchpad",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "delete_image_source_history" => %{
+      title: "Delete Image Source History",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "update_image_file" => %{
+      title: "Update Image File",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "update_image_description" => %{
+      title: "Update Image Description",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "update_image_sources" => %{
+      title: "Update Image Sources",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "update_image_locked_tags" => %{
+      title: "Update Image Locked Tags",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "update_image_tags" => %{
+      title: "Update Image Tags",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "update_image_uploader" => %{
+      title: "Update Image Uploader",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "update_image_anonymous" => %{
+      title: "Update Image Anonymous",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_user_hide" => %{
+      title: "Image User Hide",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_fav" => %{
+      title: "Image Fav",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_vote_manager" => %{
+      title: "Image Vote Manager",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_add_upvote" => %{
+      title: "Image Add Upvote",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    },
+    "image_add_downvote" => %{
+      title: "Image Add Downvote",
+      description: "",
+      category: "Content Management",
+      default_value: false
+    }
   }
+
+  @doc """
+  Returns actions grouped by their category.
+  Returns a map where keys are category names and values are lists of {action_key, metadata} tuples.
+  """
+  def actions_grouped_by_category do
+    @available_actions
+    |> Map.to_list()
+    |> Enum.group_by(fn {_key, metadata} -> metadata.category end)
+    |> Enum.sort_by(fn {category, _actions} -> category end)
+  end
 
   @doc """
   Returns the metadata for a specific action key.
