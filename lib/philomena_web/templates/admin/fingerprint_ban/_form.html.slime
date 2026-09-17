@@ -29,8 +29,8 @@
   br
   .block
     .block__header
-      span.block__header__title Ban Options
-    p.help-text.instruction If no options are selected, default ban rules will be applied. If one or more options are selected, a partial ban will be applied based on your selections.
+      span.block__header__title Allow Actions
+    p.help-text.instruction When enabled, this banned user will retain access to this specific resource
 
     = for action <- PhilomenaWeb.BanReasonHelper.available_actions() do
       .field
