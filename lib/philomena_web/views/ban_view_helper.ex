@@ -44,6 +44,6 @@ defmodule PhilomenaWeb.BanViewHelper do
 
   defp matches_ban_or_universal?(ban, reason) do
     # It is universal (no granular flag) OR has the granular action we are testing
-    not BanReasonHelper.any_granular_ban?(ban) or BanReasonHelper.has_action?(ban, reason)
+    not BanReasonHelper.any_granular_ban?(ban) or not BanReasonHelper.has_action?(ban, reason)
   end
 end

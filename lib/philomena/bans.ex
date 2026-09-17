@@ -822,7 +822,7 @@ defmodule Philomena.Bans do
 
     Enum.any?(List.wrap(bans), fn ban ->
       if PhilomenaWeb.BanReasonHelper.any_granular_ban?(ban) do
-        PhilomenaWeb.BanReasonHelper.has_action?(ban, reason)
+        !PhilomenaWeb.BanReasonHelper.has_action?(ban, reason)
       else
         true
       end
