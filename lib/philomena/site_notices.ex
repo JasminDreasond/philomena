@@ -9,7 +9,7 @@ defmodule Philomena.SiteNotices do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Attribution.Actor
   alias Philomena.Authorization
@@ -90,7 +90,7 @@ defmodule Philomena.SiteNotices do
   @spec new_site_notice(Actor.t()) ::
           {:ok, Ecto.Changeset.t()} | Authorization.write_error()
   def new_site_notice(%Actor{} = actor) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :site_notices),
          :ok <- authorize(actor, :new, SiteNotice) do
       {:ok, SiteNotice.changeset(%SiteNotice{})}
     end
@@ -116,7 +116,7 @@ defmodule Philomena.SiteNotices do
           | Authorization.write_error()
           | {:error, Ecto.Changeset.t()}
   def create_site_notice(%Actor{} = actor, attrs \\ %{}) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :site_notices),
          :ok <- authorize(actor, :create, SiteNotice) do
       %SiteNotice{user_id: actor.user.id}
       |> SiteNotice.changeset(attrs)
@@ -144,7 +144,7 @@ defmodule Philomena.SiteNotices do
           {:ok, {SiteNotice.t(), Ecto.Changeset.t()}}
           | {:error, Authorization.write_error_reason() | :not_found}
   def edit_site_notice(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :site_notices),
          {:ok, site_notice} <- load_site_notice(actor, id, :edit) do
       {:ok, {site_notice, SiteNotice.changeset(site_notice)}}
     end
@@ -169,7 +169,7 @@ defmodule Philomena.SiteNotices do
           {:ok, SiteNotice.t()}
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def update_site_notice(%Actor{} = actor, id, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :site_notices),
          {:ok, site_notice} <- load_site_notice(actor, id, :update) do
       site_notice
       |> SiteNotice.changeset(params)
@@ -196,7 +196,7 @@ defmodule Philomena.SiteNotices do
           {:ok, SiteNotice.t()}
           | {:error, Authorization.write_error_reason() | :not_found}
   def delete_site_notice(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :site_notices),
          {:ok, site_notice} <- load_site_notice(actor, id, :delete) do
       Repo.delete(site_notice)
     end

@@ -4,7 +4,7 @@ defmodule Philomena.Donations do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Attribution.Actor
   alias Philomena.Authorization
@@ -69,7 +69,7 @@ defmodule Philomena.Donations do
       |> where(slug: ^slug)
       |> preload(donations: :user)
 
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :show_user_donations),
          :ok <- authorize(actor, :show, Donation),
          {:ok, user} <- Loader.one(user_query),
          :ok <- authorize(actor, :show_donations, user) do
@@ -100,7 +100,7 @@ defmodule Philomena.Donations do
           | Authorization.write_error()
           | {:error, Ecto.Changeset.t()}
   def create_donation(%Actor{} = actor, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :create_donation),
          :ok <- authorize(actor, :create, Donation) do
       %Donation{}
       |> Donation.changeset(attrs)

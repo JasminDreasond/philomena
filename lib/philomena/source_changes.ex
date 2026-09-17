@@ -9,7 +9,7 @@ defmodule Philomena.SourceChanges do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Repo
   alias Philomena.Attribution.Actor
@@ -297,7 +297,7 @@ defmodule Philomena.SourceChanges do
   @spec erase_source_change(Actor.t(), Loader.integer_id()) ::
           {:ok, SourceChange.t()} | {:error, :ban | :unauthorized | :not_found}
   def erase_source_change(%Actor{} = actor, source_change_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :erase_source_change),
          :ok <- authorize(actor, :erase, %User{}),
          {:ok, source_change} <- Loader.fetch(SourceChange, source_change_id) do
       Multi.new()

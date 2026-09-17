@@ -4,7 +4,7 @@ defmodule Philomena.Commissions do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Multi
   alias Philomena.Attribution.Actor
@@ -164,7 +164,7 @@ defmodule Philomena.Commissions do
           {:ok, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found | :no_verified_links}
   def new_commission(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_commissions),
          {:ok, user} <- load_profile(actor, slug, :show),
          {:ok, commission} <- new_commission(actor, user, :new) do
       {:ok, Commission.changeset(commission)}
@@ -192,7 +192,7 @@ defmodule Philomena.Commissions do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found | :no_verified_links}
   def create_commission(%Actor{} = actor, slug, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_commissions),
          {:ok, user} <- load_profile(actor, slug, :show),
          {:ok, commission} <- new_commission(actor, user, :create),
          {:ok, commission} <-
@@ -219,7 +219,7 @@ defmodule Philomena.Commissions do
           {:ok, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def edit_commission(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_commissions),
          {:ok, user} <- load_profile(actor, slug, :show),
          {:ok, commission} <- load_profile_commission(actor, user, :edit) do
       {:ok, Commission.changeset(commission)}
@@ -243,7 +243,7 @@ defmodule Philomena.Commissions do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def update_commission(%Actor{} = actor, slug, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_commissions),
          {:ok, user} <- load_profile(actor, slug, :show),
          {:ok, commission} <- load_profile_commission(actor, user, :update) do
       commission
@@ -268,7 +268,7 @@ defmodule Philomena.Commissions do
           {:ok, Commission.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def delete_commission(%Actor{user: closing_user} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_commissions),
          {:ok, user} <- load_profile(actor, slug, :show),
          {:ok, commission} <- load_profile_commission(actor, user, :delete) do
       Multi.new()
@@ -301,7 +301,7 @@ defmodule Philomena.Commissions do
   @spec new_item(Actor.t(), String.t()) ::
           {:ok, Ecto.Changeset.t()} | {:error, :ban | :unauthorized | :not_found}
   def new_item(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_commissions),
          {:ok, user} <- load_profile(actor, slug, :show),
          {:ok, commission} <- load_profile_commission(actor, user, :new_item) do
       {:ok,
@@ -329,7 +329,7 @@ defmodule Philomena.Commissions do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def create_item(%Actor{} = actor, slug, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_commissions),
          {:ok, user} <- load_profile(actor, slug, :show),
          {:ok, commission} <- load_profile_commission(actor, user, :create_item) do
       changeset =
@@ -375,7 +375,7 @@ defmodule Philomena.Commissions do
   @spec edit_item(Actor.t(), String.t(), IntegerId.integer_id()) ::
           {:ok, Ecto.Changeset.t()} | {:error, :ban | :unauthorized | :not_found}
   def edit_item(%Actor{} = actor, slug, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_commissions),
          {:ok, user} <- load_profile(actor, slug, :show),
          {:ok, commission} <- load_profile_commission(actor, user, :edit_item),
          {:ok, item} <- load_commission_item(commission, id) do
@@ -402,7 +402,7 @@ defmodule Philomena.Commissions do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def update_item(%Actor{} = actor, slug, id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_commissions),
          {:ok, user} <- load_profile(actor, slug, :show),
          {:ok, commission} <- load_profile_commission(actor, user, :update_item),
          {:ok, item} <- load_commission_item(commission, id) do
@@ -427,7 +427,7 @@ defmodule Philomena.Commissions do
   @spec delete_item(Actor.t(), String.t(), IntegerId.integer_id()) ::
           {:ok, Item.t()} | {:error, :ban | :unauthorized | :not_found}
   def delete_item(%Actor{} = actor, slug, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_commissions),
          {:ok, user} <- load_profile(actor, slug, :show),
          {:ok, commission} <- load_profile_commission(actor, user, :delete_item),
          {:ok, item} <- load_commission_item(commission, id) do

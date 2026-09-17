@@ -6,7 +6,7 @@
 
 .js-tagsauce#image_tags_and_source
   .js-imageform class=form_class
-    = if @changeset && can?(@conn, :edit_metadata, @image) && !PhilomenaWeb.BanViewHelper.banned_from?(@conn, :manage_tags) do
+    = if @changeset && can?(@conn, :edit_metadata, @image) && !PhilomenaWeb.BanViewHelper.banned_from?(@conn, :tag_manager) do
 
       = if Enum.any?(@image.locked_tags) do
         .block.block--fixed.block--warning

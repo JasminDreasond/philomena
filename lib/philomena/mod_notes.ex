@@ -9,7 +9,7 @@ defmodule Philomena.ModNotes do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.IntegerId
   alias Philomena.Multi
@@ -144,7 +144,7 @@ defmodule Philomena.ModNotes do
   @spec new_mod_note(Actor.t(), map()) ::
           {:ok, Ecto.Changeset.t()} | {:error, :ban | :not_found | :unauthorized}
   def new_mod_note(%Actor{user: moderator} = actor, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :mod_notes),
          :ok <- authorize(actor, :new, ModNote),
          {:ok, target} <- Target.from_params(params),
          {:ok, _} <- fetch_and_authorize_target(actor, target, :annotate) do
@@ -172,7 +172,7 @@ defmodule Philomena.ModNotes do
           {:ok, ModNote.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def create_mod_note(%Actor{user: moderator} = actor, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :mod_notes),
          :ok <- authorize(actor, :create, ModNote),
          {:ok, target} <- Target.from_params(attrs),
          {:ok, _} <- fetch_and_authorize_target(actor, target, :annotate) do
@@ -216,7 +216,7 @@ defmodule Philomena.ModNotes do
           {:ok, {ModNote.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :not_found | :unauthorized}
   def edit_mod_note(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :mod_notes),
          {:ok, mod_note} <- load_mod_note(actor, id, :edit) do
       {:ok, {mod_note, ModNote.changeset(mod_note)}}
     end
@@ -238,7 +238,7 @@ defmodule Philomena.ModNotes do
           {:ok, ModNote.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def update_mod_note(%Actor{} = actor, id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :mod_notes),
          {:ok, mod_note} <- load_mod_note(actor, id, :update) do
       mod_note_changeset = ModNote.changeset(mod_note, attrs)
 
@@ -278,7 +278,7 @@ defmodule Philomena.ModNotes do
           {:ok, ModNote.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def delete_mod_note(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :mod_notes),
          {:ok, mod_note} <- load_mod_note(actor, id, :delete) do
       Multi.new()
       |> Multi.delete(:mod_note, mod_note)

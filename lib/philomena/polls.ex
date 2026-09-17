@@ -4,7 +4,7 @@ defmodule Philomena.Polls do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [verify_write_access: 1]
+  import Philomena.Authorization, only: [verify_scoped_write_access: 2]
 
   alias Philomena.Attribution.Actor
   alias Philomena.Loader
@@ -52,7 +52,7 @@ defmodule Philomena.Polls do
   @spec edit_poll(Actor.t(), String.t(), String.t()) ::
           {:ok, Ecto.Changeset.t()} | {:error, :ban | :not_found | :unauthorized}
   def edit_poll(%Actor{} = actor, forum_slug, topic_slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :polls),
          {:ok, forum} <- Forums.show_forum(actor, forum_slug),
          {:ok, topic} <- Topics.show_forum_topic(actor, forum, topic_slug, :edit_poll),
          {:ok, poll} <- load_topic_poll(topic) do
@@ -83,7 +83,7 @@ defmodule Philomena.Polls do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :not_found | :unauthorized}
   def update_poll(%Actor{} = actor, forum_slug, topic_slug, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :polls),
          {:ok, forum} <- Forums.show_forum(actor, forum_slug),
          {:ok, topic} <- Topics.show_forum_topic(actor, forum, topic_slug, :update_poll),
          {:ok, poll} <- load_topic_poll(topic) do

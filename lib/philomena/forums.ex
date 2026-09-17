@@ -4,7 +4,7 @@ defmodule Philomena.Forums do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Attribution.Actor
   alias Philomena.Forums.{Forum, ForumIndex, ForumPage}
@@ -139,7 +139,7 @@ defmodule Philomena.Forums do
 
   @doc """
   Subscribes `actor` to a visible forum. Subscription management is
-  deliberately exempt from `verify_write_access/1`.
+  deliberately exempt from `verify_scoped_write_access/2`.
 
   ## Examples
 
@@ -158,7 +158,7 @@ defmodule Philomena.Forums do
 
   @doc """
   Idempotently unsubscribes `actor` from a visible forum. Subscription
-  management is deliberately exempt from `verify_write_access/1`.
+  management is deliberately exempt from `verify_scoped_write_access/2`.
 
   ## Examples
 
@@ -187,7 +187,7 @@ defmodule Philomena.Forums do
   @spec new_forum(Actor.t()) ::
           {:ok, Ecto.Changeset.t()} | {:error, :ban | :unauthorized}
   def new_forum(%Actor{} = actor) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :forum_manager),
          :ok <- authorize(actor, :new, Forum) do
       {:ok, Forum.changeset(%Forum{})}
     end
@@ -208,7 +208,7 @@ defmodule Philomena.Forums do
   @spec create_forum(Actor.t(), map()) ::
           {:ok, Forum.t()} | {:error, :ban | :unauthorized | Ecto.Changeset.t()}
   def create_forum(%Actor{} = actor, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :forum_manager),
          :ok <- authorize(actor, :create, Forum) do
       %Forum{}
       |> Forum.changeset(attrs)
@@ -228,7 +228,7 @@ defmodule Philomena.Forums do
   @spec edit_forum(Actor.t(), String.t()) ::
           {:ok, {Forum.t(), Ecto.Changeset.t()}} | {:error, :ban | :not_found | :unauthorized}
   def edit_forum(%Actor{} = actor, short_name) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :forum_manager),
          {:ok, forum} <- load_authorized_forum(actor, :edit, short_name) do
       {:ok, {forum, Forum.changeset(forum, %{})}}
     end
@@ -246,7 +246,7 @@ defmodule Philomena.Forums do
   @spec update_forum(Actor.t(), String.t(), map()) ::
           {:ok, Forum.t()} | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def update_forum(%Actor{} = actor, short_name, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :forum_manager),
          {:ok, forum} <- load_authorized_forum(actor, :update, short_name) do
       forum
       |> Forum.changeset(attrs)

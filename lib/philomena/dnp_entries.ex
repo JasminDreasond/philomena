@@ -4,7 +4,7 @@ defmodule Philomena.DnpEntries do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Attribution.Actor
   alias Philomena.DnpEntries.{DnpEntry, DnpEntryForm, DnpEntryPage, DnpListing}
@@ -199,7 +199,7 @@ defmodule Philomena.DnpEntries do
   @spec new_dnp_entry(Actor.t(), map()) ::
           {:ok, DnpEntryForm.t()} | {:error, :ban | :unauthorized | :not_found}
   def new_dnp_entry(%Actor{} = actor, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :dnp_entry),
          :ok <- authorize(actor, :new, DnpEntry),
          default_tag = get_tag_from_params(params),
          {:ok, tags} <- selectable_tags(actor, default_tag) do
@@ -225,7 +225,7 @@ defmodule Philomena.DnpEntries do
           | {:error, DnpEntryForm.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def create_dnp_entry(%Actor{user: user} = actor, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :dnp_entry),
          :ok <- authorize(actor, :create, DnpEntry),
          default_tag = get_tag_from_params(params),
          {:ok, selectable_tags} <- selectable_tags(actor, default_tag) do
@@ -271,7 +271,7 @@ defmodule Philomena.DnpEntries do
   @spec edit_dnp_entry(Actor.t(), Loader.integer_id()) ::
           {:ok, DnpEntryForm.t()} | {:error, :ban | :unauthorized | :not_found}
   def edit_dnp_entry(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :dnp_entry),
          {:ok, dnp_entry} <- load_authorized_dnp_entry(actor, id, :edit),
          {:ok, tags} <- selectable_tags(actor, dnp_entry.tag) do
       {:ok, dnp_entry_form(dnp_entry, tags)}
@@ -296,7 +296,7 @@ defmodule Philomena.DnpEntries do
           | {:error, DnpEntryForm.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def update_dnp_entry(%Actor{} = actor, id, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :dnp_entry),
          {:ok, dnp_entry} <- load_authorized_dnp_entry(actor, id, :update),
          {:ok, selectable_tags} <- selectable_tags(actor, dnp_entry.tag) do
       selectable_tag_ids = Enum.map(selectable_tags, & &1.id)
@@ -341,7 +341,7 @@ defmodule Philomena.DnpEntries do
           {:ok, DnpEntry.t()}
           | {:error, :ban | :unauthorized | :not_found | Ecto.Changeset.t()}
   def create_dnp_entry_transition(%Actor{user: user} = actor, id, new_state) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :dnp_entry_transition),
          {:ok, dnp_entry} <- load_authorized_dnp_entry(actor, id, :transition) do
       dnp_entry_changeset = DnpEntry.transition_changeset(dnp_entry, user, new_state)
 

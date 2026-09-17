@@ -90,4 +90,27 @@ defmodule Philomena.Authorization do
   def verify_write_access(%Actor{ban: ban}) when not is_nil(ban), do: {:error, :ban}
   def verify_write_access(%Actor{fingerprint: nil}), do: {:error, :unauthorized}
   def verify_write_access(%Actor{}), do: :ok
+
+  @doc """
+  Verifies that `actor` may perform a write with a specific scope.
+
+  Decides, in order:
+
+     * `:ok` if the actor is not banned or has a granular ban allowing the scope.
+     * `{:error, :ban}` if the actor has a universal ban or a granular ban that does NOT allow the scope.
+     * `{:error, :unauthorized}` if the actor has no fingerprint.
+
+  """
+  @spec verify_scoped_write_access(actor :: Actor.t(), scope :: any()) :: :ok | write_error()
+  def verify_scoped_write_access(%Actor{ban: ban}, scope) when not is_nil(ban) do
+    if PhilomenaWeb.BanReasonHelper.any_granular_ban?(ban) and
+         PhilomenaWeb.BanReasonHelper.has_action?(ban, scope) do
+      :ok
+    else
+      {:error, :ban}
+    end
+  end
+
+  def verify_scoped_write_access(%Actor{fingerprint: nil}, _scope), do: {:error, :unauthorized}
+  def verify_scoped_write_access(%Actor{}, _scope), do: :ok
 end

@@ -10,7 +10,7 @@ defmodule Philomena.Comments do
   import Ecto.Query, warn: false
 
   import Philomena.Authorization,
-    only: [authorize: 3, verify_write_access: 1]
+    only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Multi
   alias Philomena.Attribution.Actor
@@ -374,7 +374,7 @@ defmodule Philomena.Comments do
           | {:error, {Image.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :unauthorized | :forced_filter | :rate_limited}
   def create_comment(%Actor{user: creator} = actor, image_id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :image_comment),
          {:ok, image} <- load_image(actor, image_id, :create_comment),
          :ok <- Images.verify_forced_filter_access(actor, image) do
       comment_changeset =
@@ -464,7 +464,7 @@ defmodule Philomena.Comments do
         ) ::
           {:ok, Ecto.Changeset.t()} | {:error, :ban | :unauthorized | :not_found | :forced_filter}
   def edit_comment(%Actor{} = actor, image_id, comment_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :image_comment),
          {:ok, image} <- load_image(actor, image_id, :create_comment),
          :ok <- Images.verify_forced_filter_access(actor, image),
          {:ok, comment} <- load_image_comment(actor, image, comment_id, :edit, @preloads) do
@@ -500,7 +500,7 @@ defmodule Philomena.Comments do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found | :forced_filter}
   def update_comment(%Actor{} = actor, image_id, comment_id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :image_comment),
          {:ok, image} <- load_image(actor, image_id, :create_comment),
          :ok <- Images.verify_forced_filter_access(actor, image),
          {:ok, comment} <- load_image_comment(actor, image, comment_id, :update, @preloads) do
@@ -600,7 +600,7 @@ defmodule Philomena.Comments do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def create_comment_hide(%Actor{user: user} = actor, image_id, comment_id, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :image_comment_hide),
          {:ok, image} <- load_image(actor, image_id, :show),
          {:ok, comment} <- load_image_comment(actor, image, comment_id, :hide, @preloads) do
       changeset = Comment.hide_changeset(comment, params, user)
@@ -646,7 +646,7 @@ defmodule Philomena.Comments do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def delete_comment_hide(%Actor{} = actor, image_id, comment_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :image_comment_hide),
          {:ok, image} <- load_image(actor, image_id, :show),
          {:ok, comment} <- load_image_comment(actor, image, comment_id, :hide, @preloads) do
       changeset = Comment.unhide_changeset(comment)
@@ -693,7 +693,7 @@ defmodule Philomena.Comments do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def create_comment_delete(%Actor{} = actor, image_id, comment_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :image_comment_delete),
          {:ok, image} <- load_image(actor, image_id, :show),
          {:ok, comment} <- load_image_comment(actor, image, comment_id, :delete, @preloads) do
       comment_query = from(c in Comment, where: c.id == ^comment.id)
@@ -752,7 +752,7 @@ defmodule Philomena.Comments do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def create_comment_approve(%Actor{user: user} = actor, image_id, comment_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :image_comment_approve),
          {:ok, image} <- load_image(actor, image_id, :show),
          {:ok, comment} <- load_image_comment(actor, image, comment_id, :approve, @preloads) do
       comment_query = from(c in Comment, where: c.id == ^comment.id)

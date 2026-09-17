@@ -44,7 +44,7 @@ h1 = @conversation.title
       | ).
 
 = cond do
-  - PhilomenaWeb.BanViewHelper.banned_from?(@conn, :send_pm) ->
+  - PhilomenaWeb.BanViewHelper.banned_from?(@conn, :create_conversation) ->
     = render PhilomenaWeb.BanView, "_ban_reason.html", conn: @conn
 
   - @messages.total_entries < 1_000 ->

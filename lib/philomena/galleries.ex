@@ -20,7 +20,7 @@ defmodule Philomena.Galleries do
   import Ecto.Query, warn: false
 
   import Philomena.Authorization,
-    only: [authorize: 3, verify_write_access: 1]
+    only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Multi
   alias Philomena.Repo
@@ -253,7 +253,7 @@ defmodule Philomena.Galleries do
   @spec new_gallery(Actor.t()) ::
           {:ok, Ecto.Changeset.t()} | {:error, :ban | :unauthorized}
   def new_gallery(%Actor{} = actor) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :gallery_manager),
          :ok <- authorize(actor, :new, Gallery) do
       {:ok, Gallery.changeset(%Gallery{})}
     end
@@ -277,7 +277,7 @@ defmodule Philomena.Galleries do
   @spec create_gallery(Actor.t(), map()) ::
           {:ok, Gallery.t()} | {:error, :ban | :unauthorized | Ecto.Changeset.t()}
   def create_gallery(%Actor{user: user} = actor, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :gallery_manager),
          :ok <- authorize(actor, :create, Gallery) do
       Multi.new()
       |> Multi.insert(:gallery, Gallery.creation_changeset(%Gallery{}, attrs, user))
@@ -319,7 +319,7 @@ defmodule Philomena.Galleries do
   @spec update_gallery(Actor.t(), Loader.integer_id(), map() | nil) ::
           {:ok, Gallery.t()} | {:error, :ban | :unauthorized | :not_found | Ecto.Changeset.t()}
   def update_gallery(%Actor{} = actor, gallery_id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :gallery_manager),
          {:ok, gallery} <- load_gallery(actor, gallery_id, :update) do
       Multi.new()
       |> Multi.update(:gallery, Gallery.changeset(gallery, attrs))
@@ -349,7 +349,7 @@ defmodule Philomena.Galleries do
   @spec delete_gallery(Actor.t(), Loader.integer_id()) ::
           {:ok, Gallery.t()} | {:error, :ban | :unauthorized | :not_found}
   def delete_gallery(%Actor{} = actor, gallery_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :gallery_manager),
          {:ok, gallery} <- load_gallery(actor, gallery_id, :delete) do
       persist_gallery_deletion(gallery, actor.user)
     end
@@ -380,7 +380,7 @@ defmodule Philomena.Galleries do
           {:ok, {Gallery.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :unauthorized | :not_found | Ecto.Changeset.t()}
   def edit_gallery(%Actor{} = actor, gallery_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :gallery_manager),
          {:ok, gallery} <- load_gallery(actor, gallery_id, :edit) do
       {:ok, {gallery, Gallery.changeset(gallery)}}
     end
@@ -601,7 +601,7 @@ defmodule Philomena.Galleries do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def create_gallery_image(%Actor{} = actor, gallery_id, image_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :gallery_manager),
          {:ok, gallery_id} <- Loader.parse_id(gallery_id),
          {:ok, image_id} <- Loader.parse_id(image_id) do
       Multi.new()
@@ -663,7 +663,7 @@ defmodule Philomena.Galleries do
           | {:error, :ban | :unauthorized | :not_found}
           | Ecto.Multi.failure()
   def delete_gallery_image(%Actor{} = actor, gallery_id, image_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :gallery_manager),
          {:ok, gallery_id} <- Loader.parse_id(gallery_id),
          {:ok, image_id} <- Loader.parse_id(image_id) do
       Multi.new()
@@ -720,7 +720,7 @@ defmodule Philomena.Galleries do
           {:ok, ReorderForm.t()}
           | {:error, :ban | :unauthorized | :not_found | Ecto.Changeset.t()}
   def update_gallery_order(%Actor{} = actor, gallery_id, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :gallery_manager),
          {:ok, gallery_id} <- Loader.parse_id(gallery_id),
          {:ok, reorder_form} <-
            %ReorderForm{}
@@ -798,7 +798,7 @@ defmodule Philomena.Galleries do
   Subscribes `user` to the gallery named by `gallery_id`.
 
   Subscription management is deliberately exempt from
-  `verify_write_access/1`; gallery visibility and subscription authorization
+  `verify_scoped_write_access/2`; gallery visibility and subscription authorization
   still apply.
 
   ## Examples

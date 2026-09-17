@@ -2,7 +2,7 @@
 .js-sourcesauce
   - has_sources = Enum.any?(@image.sources)
   = form_for changeset, ~p"/images/#{@image}/sources", [method: "put", class: "hidden", id: "source-form", data: [remote: "true"]], fn f ->
-    = if @changeset && can?(@conn, :edit_metadata, @image) && !PhilomenaWeb.BanViewHelper.banned_from?(@conn, :manage_sources) do
+    = if @changeset && can?(@conn, :edit_metadata, @image) && !PhilomenaWeb.BanViewHelper.banned_from?(@conn, :update_image_sources) do
       = if changeset.action do
         .alert.alert-danger
           p Oops, something went wrong! Please check the errors below.

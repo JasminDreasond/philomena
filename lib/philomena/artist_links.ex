@@ -6,7 +6,7 @@ defmodule Philomena.ArtistLinks do
   import Ecto.Query, warn: false
 
   import Philomena.Authorization,
-    only: [authorize: 3, verify_write_access: 1]
+    only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.ArtistLinks.{
     ArtistLink,
@@ -159,7 +159,7 @@ defmodule Philomena.ArtistLinks do
           {:ok, {User.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :unauthorized | :not_found}
   def new_artist_link(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :new_artist_link),
          {:ok, user} <- load_authorized_profile(actor, :create_links, slug) do
       {:ok, {user, ArtistLink.changeset(%ArtistLink{})}}
     end
@@ -195,7 +195,7 @@ defmodule Philomena.ArtistLinks do
           | {:error, {User.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :unauthorized | :not_found}
   def create_artist_link(%Actor{} = actor, slug, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :create_artist_link),
          {:ok, user} <- load_authorized_profile(actor, :create_links, slug),
          {:ok, artist_link} <-
            %ArtistLink{}
@@ -269,7 +269,7 @@ defmodule Philomena.ArtistLinks do
           {:ok, {ArtistLink.t(), Ecto.Changeset.t()}}
           | {:error, Authorization.write_error_reason() | :not_found}
   def edit_artist_link(%Actor{} = actor, slug, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :edit_artist_link),
          {:ok, artist_link} <- load_scoped_artist_link(actor, :edit, slug, id) do
       {:ok, {artist_link, ArtistLink.changeset(artist_link)}}
     end
@@ -299,7 +299,7 @@ defmodule Philomena.ArtistLinks do
           | {:error, {ArtistLink.t(), Ecto.Changeset.t()}}
           | {:error, Authorization.write_error_reason() | :not_found}
   def update_artist_link(%Actor{} = actor, slug, id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :update_artist_link),
          {:ok, artist_link} <- load_scoped_artist_link(actor, :update, slug, id),
          {:ok, artist_link} <-
            artist_link
@@ -345,7 +345,7 @@ defmodule Philomena.ArtistLinks do
           {:ok, ArtistLink.t()}
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def create_artist_link_verification(%Actor{user: user} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :create_artist_link_verification),
          {:ok, artist_link} <- load_artist_link(actor, :verify, id) do
       verify_changeset = ArtistLink.verify_changeset(artist_link, user)
 
@@ -396,7 +396,7 @@ defmodule Philomena.ArtistLinks do
           {:ok, ArtistLink.t()}
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def create_artist_link_reject(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :create_artist_link_reject),
          {:ok, artist_link} <- load_artist_link(actor, :reject, id) do
       reject_changeset = ArtistLink.reject_changeset(artist_link)
 
@@ -446,7 +446,7 @@ defmodule Philomena.ArtistLinks do
           {:ok, ArtistLink.t()}
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def create_artist_link_contact(%Actor{user: user} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :create_artist_link_contact),
          {:ok, artist_link} <- load_artist_link(actor, :contact, id) do
       contact_changeset = ArtistLink.contact_changeset(artist_link, user)
 

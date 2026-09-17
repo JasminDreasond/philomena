@@ -8,7 +8,7 @@ defmodule Philomena.StaticPages do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Loader
   alias Philomena.Multi
@@ -147,7 +147,7 @@ defmodule Philomena.StaticPages do
   @spec new_page(Actor.t()) ::
           {:ok, Ecto.Changeset.t()} | {:error, :ban | :unauthorized}
   def new_page(%Actor{} = actor) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :static_pages),
          :ok <- authorize(actor, :new, StaticPage) do
       {:ok, change_static_page(%StaticPage{})}
     end
@@ -172,7 +172,7 @@ defmodule Philomena.StaticPages do
           {:ok, StaticPage.t()}
           | {:error, Ecto.Changeset.t() | :ban | :unauthorized}
   def create_page(%Actor{} = actor, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :static_pages),
          :ok <- authorize(actor, :create, StaticPage) do
       actor.user
       |> create_static_page(attrs)
@@ -202,7 +202,7 @@ defmodule Philomena.StaticPages do
           {:ok, {StaticPage.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :not_found | :unauthorized}
   def edit_page(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :static_pages),
          {:ok, static_page} <- load_static_page(actor, :edit, slug) do
       {:ok, {static_page, change_static_page(static_page)}}
     end
@@ -225,7 +225,7 @@ defmodule Philomena.StaticPages do
           {:ok, StaticPage.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def update_page(%Actor{} = actor, slug, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :static_pages),
          {:ok, static_page} <- load_static_page(actor, :update, slug) do
       static_page
       |> update_static_page(actor.user, attrs)

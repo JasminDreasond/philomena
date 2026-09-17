@@ -7,7 +7,7 @@ defmodule Philomena.Badges do
 
   import Ecto.Query, warn: false
 
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Multi
   alias Philomena.Attribution.Actor
@@ -61,7 +61,7 @@ defmodule Philomena.Badges do
   """
   @spec new_badge(Actor.t()) :: {:ok, Ecto.Changeset.t()} | Authorization.write_error()
   def new_badge(%Actor{} = actor) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :badge_manager),
          :ok <- authorize(actor, :new, Badge) do
       {:ok, Badge.changeset(%Badge{})}
     end
@@ -88,7 +88,7 @@ defmodule Philomena.Badges do
           {:ok, Badge.t()}
           | {:error, Authorization.write_error_reason() | Ecto.Changeset.t()}
   def create_badge(%Actor{} = actor, attrs, upload) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :badge_manager),
          :ok <- authorize(actor, :create, Badge) do
       badge_changeset =
         %Badge{}
@@ -136,7 +136,7 @@ defmodule Philomena.Badges do
           {:ok, {Badge.t(), Ecto.Changeset.t()}}
           | {:error, Authorization.write_error_reason() | :not_found}
   def edit_badge(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :badge_manager),
          {:ok, badge} <- load_badge(actor, :edit, id) do
       {:ok, {badge, Badge.changeset(badge)}}
     end
@@ -167,7 +167,7 @@ defmodule Philomena.Badges do
           {:ok, Badge.t()}
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def update_badge(%Actor{} = actor, id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :badge_manager),
          {:ok, badge} <- load_badge(actor, :update, id) do
       badge_changeset = Badge.changeset(badge, attrs)
 
@@ -216,7 +216,7 @@ defmodule Philomena.Badges do
           {:ok, Badge.t()}
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def update_badge_image(%Actor{} = actor, id, upload) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :badge_manager),
          {:ok, badge} <- load_badge(actor, :update_image, id) do
       badge_changeset =
         badge
@@ -318,7 +318,7 @@ defmodule Philomena.Badges do
           {:ok, {User.t(), Ecto.Changeset.t(), [Badge.t()]}}
           | {:error, Authorization.write_error_reason() | :not_found}
   def new_award(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :award_manager),
          {:ok, user} <- load_authorized_profile(actor, :show, slug),
          :ok <- authorize(actor, :new, Award) do
       {:ok, {user, Award.changeset(%Award{}), awardable_badges()}}
@@ -352,7 +352,7 @@ defmodule Philomena.Badges do
           | {:error, {User.t(), Ecto.Changeset.t(), [Badge.t()]}}
           | {:error, Authorization.write_error_reason() | :not_found}
   def create_award(%Actor{user: creator} = actor, slug, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :award_manager),
          {:ok, user} <- load_authorized_profile(actor, :show, slug),
          :ok <- authorize(actor, :create, Award) do
       award_changeset =
@@ -404,7 +404,7 @@ defmodule Philomena.Badges do
           {:ok, {User.t(), Award.t(), Ecto.Changeset.t(), [Badge.t()]}}
           | {:error, Authorization.write_error_reason() | :not_found}
   def edit_award(%Actor{} = actor, slug, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :award_manager),
          {:ok, award} <- load_scoped_award(actor, :edit, slug, id) do
       {:ok, {award.user, award, Award.changeset(award), awardable_badges()}}
     end
@@ -439,7 +439,7 @@ defmodule Philomena.Badges do
           | {:error, {User.t(), Award.t(), Ecto.Changeset.t(), [Badge.t()]}}
           | {:error, Authorization.write_error_reason() | :not_found}
   def update_award(%Actor{} = actor, slug, id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :award_manager),
          {:ok, award} <- load_scoped_award(actor, :update, slug, id) do
       award_changeset = Award.changeset(award, attrs)
 
@@ -492,7 +492,7 @@ defmodule Philomena.Badges do
           {:ok, {User.t(), Award.t()}}
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def delete_award(%Actor{} = actor, slug, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :award_manager),
          {:ok, award} <- load_scoped_award(actor, :delete, slug, id) do
       Multi.new()
       |> Multi.delete(:award, award)

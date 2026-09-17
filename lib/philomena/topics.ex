@@ -6,7 +6,7 @@ defmodule Philomena.Topics do
   import Ecto.Query, warn: false
 
   import Philomena.Authorization,
-    only: [authorize: 3, verify_write_access: 1]
+    only: [authorize: 3, verify_scoped_write_access: 2]
 
   import Philomena.Forums.TransactionWorkflow
 
@@ -138,7 +138,7 @@ defmodule Philomena.Topics do
   named by `forum_slug`.
 
   Subscription management is deliberately exempt from
-  `verify_write_access/1`. The forum is authorized for `:show`, and the topic
+  `verify_scoped_write_access/2`. The forum is authorized for `:show`, and the topic
   is queried beneath it and authorized for `:subscribe`.
 
   Returns `{:ok, {forum, topic}}` (both are returned for the caller to reuse),
@@ -175,7 +175,7 @@ defmodule Philomena.Topics do
   named by `forum_slug`.
 
   Subscription management is deliberately exempt from
-  `verify_write_access/1`. Loading mirrors `subscribe/3`, but the topic uses
+  `verify_scoped_write_access/2`. Loading mirrors `subscribe/3`, but the topic uses
   the separate `:unsubscribe` action so a user may stop watching a topic that
   became hidden after subscription.
 
@@ -232,7 +232,7 @@ defmodule Philomena.Topics do
   within the forum named by `forum_slug`.
 
   This personal read-state operation is deliberately exempt from
-  `verify_write_access/1`. The forum is authorized for `:show`, then the topic
+  `verify_scoped_write_access/2`. The forum is authorized for `:show`, then the topic
   is queried beneath it and authorized for `:mark_read`. That action permits a
   subscribed user to clear notifications after the topic itself becomes
   hidden.
@@ -368,7 +368,7 @@ defmodule Philomena.Topics do
   @spec create_topic(Forum.t(), keyword(), map()) ::
           {:ok, %{topic: Topic.t()}} | {:error, atom(), Ecto.Changeset.t(), map()}
   def create_topic(%Actor{user: creator} = actor, forum_slug, params) do
-    with :ok <- verify_write_access(actor) do
+    with :ok <- verify_scoped_write_access(actor, :topic_manager) do
       Multi.new()
       |> Multi.reserve_action(
         fn -> RateLimiter.record_action(actor, :topic_create, @topic_create_window) end,
@@ -427,7 +427,7 @@ defmodule Philomena.Topics do
           {:ok, {Forum.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :not_found | :unauthorized}
   def new_topic(%Actor{} = actor, forum_slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :topic_manager),
          {:ok, forum} <- Forums.show_forum(actor, forum_slug),
          :ok <- authorize(actor, :create_topic, forum) do
       changeset =
@@ -473,7 +473,7 @@ defmodule Philomena.Topics do
           | {:error, Forum.t(), Topic.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def create_topic_hide(%Actor{user: user} = actor, forum_slug, topic_slug, params) do
-    with :ok <- verify_write_access(actor) do
+    with :ok <- verify_scoped_write_access(actor, :topic_manager) do
       user
       |> hide_topic_steps(forum_slug, topic_slug, params)
       |> ModerationLogs.put_log(
@@ -526,7 +526,7 @@ defmodule Philomena.Topics do
           | {:error, Forum.t(), Topic.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def delete_topic_hide(%Actor{} = actor, forum_slug, topic_slug) do
-    with :ok <- verify_write_access(actor) do
+    with :ok <- verify_scoped_write_access(actor, :topic_manager) do
       Multi.new()
       |> put_forum_and_topic_locks(actor, forum_slug, :show, topic_slug, :unhide)
       |> Multi.update(:topic, fn %{locked_topic: topic} -> Topic.unhide_changeset(topic) end)
@@ -596,7 +596,7 @@ defmodule Philomena.Topics do
           | {:error, Forum.t(), Topic.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def create_topic_move(%Actor{} = actor, source_forum_slug, topic_slug, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :topic_manager),
          {:ok, target_forum_slug} <- MoveForm.fetch_target_forum_short_name(params) do
       Multi.new()
       |> put_source_and_target_forum_and_topic_locks(
@@ -665,7 +665,7 @@ defmodule Philomena.Topics do
           | {:error, Forum.t(), Topic.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def create_topic_stick(%Actor{} = actor, forum_slug, topic_slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :topic_manager),
          {:ok, forum} <- Forums.show_forum(actor, forum_slug),
          {:ok, topic} <- show_forum_topic(actor, forum, topic_slug, :stick) do
       topic_changeset = Topic.stick_changeset(topic)
@@ -712,7 +712,7 @@ defmodule Philomena.Topics do
           | {:error, Forum.t(), Topic.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def delete_topic_stick(%Actor{} = actor, forum_slug, topic_slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :topic_manager),
          {:ok, forum} <- Forums.show_forum(actor, forum_slug),
          {:ok, topic} <- show_forum_topic(actor, forum, topic_slug, :unstick) do
       topic_changeset = Topic.unstick_changeset(topic)
@@ -770,7 +770,7 @@ defmodule Philomena.Topics do
           | {:error, Forum.t(), Topic.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def create_topic_lock(%Actor{user: user} = actor, forum_slug, topic_slug, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :topic_manager),
          {:ok, forum} <- Forums.show_forum(actor, forum_slug),
          {:ok, topic} <- show_forum_topic(actor, forum, topic_slug, :lock) do
       topic_changeset = Topic.lock_changeset(topic, params, user)
@@ -821,7 +821,7 @@ defmodule Philomena.Topics do
           | {:error, Forum.t(), Topic.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def delete_topic_lock(%Actor{} = actor, forum_slug, topic_slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :topic_manager),
          {:ok, forum} <- Forums.show_forum(actor, forum_slug),
          {:ok, topic} <- show_forum_topic(actor, forum, topic_slug, :unlock) do
       topic_changeset = Topic.unlock_changeset(topic)
@@ -876,7 +876,7 @@ defmodule Philomena.Topics do
           | {:error, Forum.t(), Topic.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def update_topic(%Actor{} = actor, forum_slug, topic_slug, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :topic_manager),
          {:ok, forum} <- Forums.show_forum(actor, forum_slug),
          {:ok, topic} <- show_forum_topic(actor, forum, topic_slug, :update_title) do
       topic

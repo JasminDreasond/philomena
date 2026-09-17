@@ -4,7 +4,7 @@ defmodule Philomena.Filters do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Multi
   alias Philomena.Repo
@@ -341,7 +341,7 @@ defmodule Philomena.Filters do
   @spec new_filter(Actor.t(), Loader.integer_id() | nil) ::
           {:ok, Ecto.Changeset.t()} | {:error, :ban | :unauthorized}
   def new_filter(%Actor{} = actor, based_on_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_filters),
          :ok <- authorize(actor, :new, Filter) do
       base_filter =
         case load_and_authorize_filter(actor, based_on_id, :show) do
@@ -381,7 +381,7 @@ defmodule Philomena.Filters do
           {:ok, {Filter.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :not_found | :unauthorized}
   def edit_filter(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_filters),
          {:ok, filter} <- load_and_authorize_filter(actor, id, :edit, user: :settings) do
       filter =
         filter
@@ -396,7 +396,7 @@ defmodule Philomena.Filters do
   Switches `actor`'s current filter to the one named by `id`.
 
   This personal preference update is deliberately exempt from
-  `verify_write_access/1`; banned users are permitted to switch filters.
+  `verify_scoped_write_access/2`; banned users are permitted to switch filters.
 
   Authorizes `:switch` before loading. `nil` explicitly selects the canonical default
   filter. Malformed and missing non-nil IDs are not-found.
@@ -454,7 +454,7 @@ defmodule Philomena.Filters do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized}
   def create_filter(%Actor{user: user} = actor, attrs \\ %{}) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_filters),
          :ok <- authorize(actor, :create, Filter) do
       user = Repo.preload(user, :settings)
 
@@ -518,7 +518,7 @@ defmodule Philomena.Filters do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :not_found | :unauthorized}
   def update_filter(%Actor{} = actor, id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_filters),
          {:ok, filter} <- load_and_authorize_filter(actor, id, :update, user: :settings) do
       filter_changeset = Filter.update_changeset(filter, filter.user, attrs)
 
@@ -576,7 +576,7 @@ defmodule Philomena.Filters do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :not_found | :unauthorized}
   def create_filter_public(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_filters),
          {:ok, filter} <- load_and_authorize_filter(actor, id, :publish) do
       filter_changeset = Filter.public_changeset(filter)
 
@@ -618,7 +618,7 @@ defmodule Philomena.Filters do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :not_found | :unauthorized}
   def delete_filter(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_filters),
          {:ok, filter} <- load_and_authorize_filter(actor, id, :delete) do
       filter_changeset = Filter.deletion_changeset(filter)
 
@@ -717,7 +717,7 @@ defmodule Philomena.Filters do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :not_found | :unauthorized}
   def create_filter_hide(%Actor{} = actor, %Filter{} = filter, tag_slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_filters),
          {:ok, tag} <- authorize_filter_tag(actor, :hide_tag, filter, tag_slug) do
       Multi.new()
       |> Tags.put_canonicalize_tag_name_sets([{:tag, [tag.name], []}])
@@ -766,7 +766,7 @@ defmodule Philomena.Filters do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :not_found | :unauthorized}
   def delete_filter_hide(%Actor{} = actor, %Filter{} = filter, tag_slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_filters),
          {:ok, tag} <- authorize_filter_tag(actor, :unhide_tag, filter, tag_slug) do
       Multi.new()
       |> Tags.put_canonicalize_tag_name_sets([{:tag, [tag.name], []}])
@@ -815,7 +815,7 @@ defmodule Philomena.Filters do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :not_found | :unauthorized}
   def create_filter_spoiler(%Actor{} = actor, %Filter{} = filter, tag_slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_filters),
          {:ok, tag} <- authorize_filter_tag(actor, :spoiler_tag, filter, tag_slug) do
       Multi.new()
       |> Tags.put_canonicalize_tag_name_sets([{:tag, [tag.name], []}])
@@ -864,7 +864,7 @@ defmodule Philomena.Filters do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :not_found | :unauthorized}
   def delete_filter_spoiler(%Actor{} = actor, %Filter{} = filter, tag_slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :manage_filters),
          {:ok, tag} <- authorize_filter_tag(actor, :unspoiler_tag, filter, tag_slug) do
       Multi.new()
       |> Tags.put_canonicalize_tag_name_sets([{:tag, [tag.name], []}])

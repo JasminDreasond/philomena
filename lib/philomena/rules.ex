@@ -8,7 +8,7 @@ defmodule Philomena.Rules do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.IntegerId
   alias Philomena.Authorization
@@ -216,7 +216,7 @@ defmodule Philomena.Rules do
   @spec new_rule(Actor.t()) ::
           {:ok, Ecto.Changeset.t()} | Authorization.write_error()
   def new_rule(%Actor{} = actor) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :rule_manager),
          :ok <- authorize(actor, :new, Rule) do
       {:ok, change_rule(%Rule{})}
     end
@@ -242,7 +242,7 @@ defmodule Philomena.Rules do
           | {:error, Ecto.Changeset.t()}
           | Authorization.write_error()
   def create_rule(%Actor{} = actor, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :rule_manager),
          :ok <- authorize(actor, :create, Rule) do
       create_rule_with_version(attrs, actor.user)
     end
@@ -267,7 +267,7 @@ defmodule Philomena.Rules do
           {:ok, {Rule.t(), Ecto.Changeset.t()}}
           | {:error, Authorization.write_error_reason() | :not_found}
   def edit_rule(%Actor{} = actor, position) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :rule_manager),
          {:ok, rule} <- load_authorized_rule(actor, position, :edit) do
       {:ok, {rule, change_rule(rule)}}
     end
@@ -295,7 +295,7 @@ defmodule Philomena.Rules do
           | {:error, {Rule.t(), Ecto.Changeset.t()}}
           | {:error, Authorization.write_error_reason() | :not_found}
   def update_rule(%Actor{} = actor, position, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :rule_manager),
          {:ok, rule} <- load_authorized_rule(actor, position, :update) do
       case update_rule_with_version(rule, actor.user, attrs) do
         {:ok, [updated_rule, rule_version]} -> {:ok, [updated_rule, rule_version]}

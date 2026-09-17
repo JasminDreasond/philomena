@@ -9,7 +9,7 @@ defmodule Philomena.Tags do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.ArtistLinks
   alias Philomena.ArtistLinks.ArtistLink
@@ -707,7 +707,7 @@ defmodule Philomena.Tags do
           {:ok, {Tag.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :not_found | :unauthorized}
   def edit_tag(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :tag_manager),
          {:ok, tag} <- load_tag_for_action(actor, :edit, slug, @show_preloads) do
       {:ok, {tag, Tag.changeset(tag)}}
     end
@@ -728,7 +728,7 @@ defmodule Philomena.Tags do
           {:ok, {Tag.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :not_found | :unauthorized}
   def edit_tag_image(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :tag_manager),
          {:ok, tag} <- load_tag_for_action(actor, :edit_image, slug, @image_preloads) do
       {:ok, {tag, Tag.changeset(tag)}}
     end
@@ -753,7 +753,7 @@ defmodule Philomena.Tags do
           {:ok, {Tag.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :not_found | :unauthorized}
   def edit_tag_alias(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :tag_manager),
          {:ok, tag} <- load_tag_for_action(actor, :edit_alias, slug, @alias_preloads) do
       {:ok, {tag, Tag.alias_form_changeset(tag)}}
     end
@@ -811,7 +811,7 @@ defmodule Philomena.Tags do
   Adds the tag named by `slug` to `actor`'s watched tags.
 
   This personal preference update is deliberately exempt from
-  `verify_write_access/1`. An unknown slug is `{:error, :not_found}`.
+  `verify_scoped_write_access/1`. An unknown slug is `{:error, :not_found}`.
   Otherwise this defers to the watched-tags update, which reindexes the user.
 
   Returns `{:ok, user}`, `{:error, %Ecto.Changeset{}}`, or
@@ -836,7 +836,7 @@ defmodule Philomena.Tags do
   Removes the tag named by `slug` from `actor`'s watched tags.
 
   This personal preference update is deliberately exempt from
-  `verify_write_access/1`. An unknown slug is `{:error, :not_found}`.
+  `verify_scoped_write_access/1`. An unknown slug is `{:error, :not_found}`.
   Otherwise this defers to the watched-tags update, which reindexes the user.
 
   Returns `{:ok, user}`, `{:error, %Ecto.Changeset{}}`, or
@@ -873,7 +873,7 @@ defmodule Philomena.Tags do
           {:ok, Tag.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def update_tag(%Actor{} = actor, slug, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :tag_manager),
          {:ok, tag} <- load_tag_for_action(actor, :update, slug, []) do
       implied_tag_names =
         %Tag{}
@@ -941,7 +941,7 @@ defmodule Philomena.Tags do
           {:ok, Tag.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def update_tag_image(%Actor{} = actor, slug, upload) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :tag_manager),
          {:ok, tag} <- load_tag_for_action(actor, :update_image, slug, @image_preloads) do
       tag_image_changeset = Uploader.analyze_upload(tag, upload)
 
@@ -986,7 +986,7 @@ defmodule Philomena.Tags do
           {:ok, Tag.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def delete_tag_image(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :tag_manager),
          {:ok, tag} <- load_tag_for_action(actor, :delete_image, slug, @image_preloads) do
       Multi.new()
       |> Multi.lock_one(:locked_tag, where(Tag, id: ^tag.id))
@@ -1026,7 +1026,7 @@ defmodule Philomena.Tags do
           {:ok, Tag.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def delete_tag(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :tag_manager),
          {:ok, tag} <- load_tag_for_action(actor, :delete, slug, @show_preloads),
          {:ok, _tag} <-
            tag
@@ -1068,7 +1068,7 @@ defmodule Philomena.Tags do
           {:ok, Tag.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def update_tag_alias(%Actor{} = actor, slug, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :tag_manager),
          {:ok, %{name: source_tag_name}} <- load_tag_for_action(actor, :alias, slug, []),
          {:ok, %{target_tag: target_tag_name}} =
            %Tag{}
@@ -1159,7 +1159,7 @@ defmodule Philomena.Tags do
   @spec create_tag_reindex(Actor.t(), String.t()) ::
           {:ok, Tag.t()} | {:error, :ban | :not_found | :unauthorized}
   def create_tag_reindex(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :tag_manager),
          {:ok, tag} <- load_tag_for_action(actor, :reindex, slug, @alias_preloads) do
       reindex_tag_images(tag)
       reindex_tags([tag])
@@ -1184,7 +1184,7 @@ defmodule Philomena.Tags do
           {:ok, Tag.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def delete_tag_alias(%Actor{} = actor, slug) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :tag_manager),
          {:ok, tag} <- load_tag_for_action(actor, :unalias, slug, @alias_preloads) do
       tag_query =
         Tag

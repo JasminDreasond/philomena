@@ -6,7 +6,7 @@ defmodule Philomena.Posts do
   import Ecto.Query, warn: false
 
   import Philomena.Authorization,
-    only: [authorize: 3, verify_write_access: 1]
+    only: [authorize: 3, verify_scoped_write_access: 2]
 
   import Philomena.Forums.TransactionWorkflow
 
@@ -285,7 +285,7 @@ defmodule Philomena.Posts do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found | :rate_limited}
   def create_post(%Actor{user: creator} = actor, forum_slug, topic_slug, params) do
-    with :ok <- verify_write_access(actor) do
+    with :ok <- verify_scoped_write_access(actor, :post_manager) do
       Multi.new()
       |> Multi.reserve_action(
         fn -> RateLimiter.record_action(actor, :post_create, @post_create_window) end,
@@ -361,7 +361,7 @@ defmodule Philomena.Posts do
           {:ok, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def edit_post(actor, forum_slug, topic_slug, post_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :post_manager),
          {:ok, forum} <- Forums.show_forum(actor, forum_slug),
          {:ok, topic} <- Topics.show_forum_topic(actor, forum, topic_slug, :create_post),
          {:ok, post} <- load_post_in_topic(actor, topic, post_id, :edit) do
@@ -407,7 +407,7 @@ defmodule Philomena.Posts do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def update_post(%Actor{} = actor, forum_slug, topic_slug, post_id, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :post_manager),
          {:ok, post_id} <- Loader.parse_id(post_id) do
       Multi.new()
       |> put_forum_and_topic_and_post_locks(
@@ -470,7 +470,7 @@ defmodule Philomena.Posts do
           | {:error, :ban | :unauthorized | :not_found}
           | {:error, Ecto.Changeset.t()}
   def create_post_hide(%Actor{user: user} = actor, forum_slug, topic_slug, post_id, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :post_manager),
          {:ok, post_id} <- Loader.parse_id(post_id) do
       Multi.new()
       |> put_forum_and_topic_and_post_locks(
@@ -539,7 +539,7 @@ defmodule Philomena.Posts do
           | {:error, :ban | :unauthorized | :not_found}
           | {:error, Ecto.Changeset.t()}
   def delete_post_hide(%Actor{} = actor, forum_slug, topic_slug, post_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :post_manager),
          {:ok, post_id} <- Loader.parse_id(post_id) do
       Multi.new()
       |> put_forum_and_topic_and_post_locks(
@@ -611,7 +611,7 @@ defmodule Philomena.Posts do
           | {:error, :ban | :unauthorized | :not_found}
           | {:error, Ecto.Changeset.t()}
   def create_post_delete(%Actor{} = actor, forum_slug, topic_slug, post_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :post_manager),
          {:ok, post_id} <- Loader.parse_id(post_id) do
       Multi.new()
       |> put_forum_and_topic_and_post_locks(
@@ -688,7 +688,7 @@ defmodule Philomena.Posts do
           | {:error, :ban | :unauthorized | :not_found}
           | {:error, Ecto.Changeset.t()}
   def create_post_approve(%Actor{user: user} = actor, forum_slug, topic_slug, post_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :post_manager),
          {:ok, post_id} <- Loader.parse_id(post_id) do
       Multi.new()
       |> put_forum_and_topic_and_post_locks(

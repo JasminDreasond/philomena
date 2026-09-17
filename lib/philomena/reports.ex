@@ -4,7 +4,7 @@ defmodule Philomena.Reports do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Multi
   alias Philomena.Attribution.Actor
@@ -348,7 +348,7 @@ defmodule Philomena.Reports do
   @spec new_report(Actor.t(), target_locator()) ::
           {:ok, ReportForm.t()} | {:error, :ban | :unauthorized | :not_found}
   def new_report(%Actor{} = actor, locator) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :report),
          {:ok, target} <- load_report_target(actor, locator) do
       changeset =
         target
@@ -390,7 +390,7 @@ defmodule Philomena.Reports do
           | {:error, :too_many_reports | :ban | :unauthorized | :not_found}
           | {:error, ReportForm.t()}
   def create_report(%Actor{user: user} = actor, locator, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :report),
          {:ok, target} <- load_report_target(actor, locator),
          {:ok, rule_id} <- Report.fetch_rule_id(params),
          {:ok, rule} <- Rules.fetch_rule(rule_id) do

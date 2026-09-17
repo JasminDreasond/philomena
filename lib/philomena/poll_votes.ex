@@ -4,7 +4,7 @@ defmodule Philomena.PollVotes do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [verify_write_access: 1]
+  import Philomena.Authorization, only: [verify_scoped_write_access: 2]
 
   alias Philomena.Attribution.Actor
   alias Philomena.Loader
@@ -81,7 +81,7 @@ defmodule Philomena.PollVotes do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :not_found | :unauthorized}
   def create_votes(%Actor{user: user} = actor, forum_slug, topic_slug, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :poll_votes),
          {:ok, forum} <- Forums.show_forum(actor, forum_slug),
          {:ok, topic} <- Topics.show_forum_topic(actor, forum, topic_slug, :vote),
          {:ok, poll} <- Polls.load_topic_poll(topic) do
@@ -136,7 +136,7 @@ defmodule Philomena.PollVotes do
   @spec delete_vote(Actor.t(), String.t(), String.t(), Loader.integer_id()) ::
           {:ok, Poll.t()} | {:error, :ban | :not_found | :unauthorized}
   def delete_vote(%Actor{} = actor, forum_slug, topic_slug, vote_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :poll_votes),
          {:ok, forum} <- Forums.show_forum(actor, forum_slug),
          {:ok, topic} <- Topics.show_forum_topic(actor, forum, topic_slug, :delete_poll_vote),
          {:ok, poll} <- Polls.load_topic_poll(topic),

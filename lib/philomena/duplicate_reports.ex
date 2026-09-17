@@ -8,7 +8,7 @@ defmodule Philomena.DuplicateReports do
   import Philomena.DuplicateReports.Power
 
   import Philomena.Authorization,
-    only: [authorize: 3, verify_write_access: 1]
+    only: [authorize: 3, verify_scoped_write_access: 2]
 
   import Philomena.DuplicateReports.TransactionWorkflow
 
@@ -186,7 +186,7 @@ defmodule Philomena.DuplicateReports do
           {:ok, {Image.t(), [DuplicateReport.t()], Ecto.Changeset.t()}}
           | {:error, :ban | :not_found | :unauthorized}
   def new_duplicate_report(%Actor{} = actor, image_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :duplicate_report),
          :ok <- authorize(actor, :create, DuplicateReport),
          {:ok, image} <- Images.load_report_target(actor, image_id) do
       changeset =
@@ -233,7 +233,7 @@ defmodule Philomena.DuplicateReports do
           {:ok, DuplicateReport.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def create_duplicate_report(%Actor{user: user} = actor, source_id, target_id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :duplicate_report),
          :ok <- authorize(actor, :create, DuplicateReport),
          {:ok, source} <- Images.load_report_target(actor, source_id),
          {:ok, target} <- Images.load_report_target(actor, target_id) do
@@ -404,7 +404,7 @@ defmodule Philomena.DuplicateReports do
           {:ok, DuplicateReport.t(), [DuplicateReport.t()]}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def create_duplicate_report_accept(%Actor{user: user} = actor, report_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :duplicate_report_accept),
          {:ok, report} <- load_report(actor, :accept, report_id) do
       Multi.new()
       |> put_lock_image_pair_and_report(report, actor, :show, :accept)
@@ -466,7 +466,7 @@ defmodule Philomena.DuplicateReports do
           {:ok, DuplicateReport.t(), [DuplicateReport.t()]}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def create_duplicate_report_accept_reverse(%Actor{user: user} = actor, report_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :duplicate_report_accept_reverse),
          {:ok, report} <- load_report(actor, :accept_reverse, report_id) do
       Multi.new()
       |> put_lock_image_pair_and_report(
@@ -548,7 +548,7 @@ defmodule Philomena.DuplicateReports do
           {:ok, DuplicateReport.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def create_duplicate_report_claim(%Actor{user: user} = actor, report_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :duplicate_report_accept_claim),
          {:ok, report} <- load_report(actor, :claim, report_id) do
       Multi.new()
       |> put_lock_image_pair_and_report(report, actor, :show, :claim)
@@ -592,7 +592,7 @@ defmodule Philomena.DuplicateReports do
           {:ok, DuplicateReport.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def delete_duplicate_report_claim(%Actor{} = actor, report_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :delete_duplicate_report_claim),
          {:ok, report} <- load_report(actor, :unclaim, report_id) do
       Multi.new()
       |> put_lock_image_pair_and_report(report, actor, :show, :unclaim)
@@ -636,7 +636,7 @@ defmodule Philomena.DuplicateReports do
           {:ok, DuplicateReport.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def create_duplicate_report_reject(%Actor{user: user} = actor, report_id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :duplicate_report_reject),
          {:ok, report} <- load_report(actor, :reject, report_id) do
       Multi.new()
       |> put_lock_image_pair_and_report(report, actor, :show, :reject)

@@ -5,7 +5,7 @@ defmodule Philomena.Channels do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Attribution.Actor
   alias Philomena.Channels.AutomaticUpdater
@@ -165,7 +165,7 @@ defmodule Philomena.Channels do
   `id`, returning the channel.
 
   This authenticated read-state operation authorizes `:mark_read`. It is
-  specifically exempt from `verify_write_access/1`.
+  specifically exempt from `verify_scoped_write_access/2`.
 
   ## Examples
 
@@ -200,7 +200,7 @@ defmodule Philomena.Channels do
   @spec new_channel(Actor.t()) ::
           {:ok, Ecto.Changeset.t()} | {:error, :ban | :unauthorized}
   def new_channel(%Actor{} = actor) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :channel_manager),
          :ok <- authorize(actor, :new, Channel) do
       {:ok, Channel.changeset(%Channel{})}
     end
@@ -226,7 +226,7 @@ defmodule Philomena.Channels do
   @spec create_channel(Actor.t(), map()) ::
           {:ok, Channel.t()} | {:error, :ban | :unauthorized | Ecto.Changeset.t()}
   def create_channel(%Actor{} = actor, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :channel_manager),
          :ok <- authorize(actor, :create, Channel),
          {:ok, channel} <-
            %Channel{}
@@ -270,7 +270,7 @@ defmodule Philomena.Channels do
           {:ok, {Channel.t(), Ecto.Changeset.t()}}
           | {:error, :ban | :not_found | :unauthorized}
   def edit_channel(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :channel_manager),
          {:ok, channel} <- load_channel(actor, id, :edit) do
       {:ok, {channel, Channel.changeset(channel)}}
     end
@@ -301,7 +301,7 @@ defmodule Philomena.Channels do
           {:ok, Channel.t()}
           | {:error, :ban | :not_found | :unauthorized | Ecto.Changeset.t()}
   def update_channel(%Actor{} = actor, id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :channel_manager),
          {:ok, channel} <- load_channel(actor, id, :update, [:associated_artist_tag]),
          {:ok, channel} <-
            channel
@@ -359,7 +359,7 @@ defmodule Philomena.Channels do
   @spec delete_channel(Actor.t(), Loader.integer_id()) ::
           {:ok, Channel.t()} | {:error, :ban | :not_found | :unauthorized}
   def delete_channel(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :channel_manager),
          {:ok, channel} <- load_channel(actor, id, :delete) do
       Repo.delete(channel)
     end
@@ -372,7 +372,7 @@ defmodule Philomena.Channels do
   failures are returned as changeset errors.
 
   Subscription management is deliberately exempt from
-  `verify_write_access/1`; channel visibility and subscription authorization
+  `verify_scoped_write_access/2`; channel visibility and subscription authorization
   still apply.
 
   ## Examples
@@ -402,7 +402,7 @@ defmodule Philomena.Channels do
 
   Repeated unsubscription is an idempotent success and also clears any live
   notification for the channel. Subscription management is deliberately
-  exempt from `verify_write_access/1`; channel visibility and subscription
+  exempt from `verify_scoped_write_access/2`; channel visibility and subscription
   authorization still apply.
 
   ## Examples

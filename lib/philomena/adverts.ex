@@ -5,7 +5,7 @@ defmodule Philomena.Adverts do
 
   import Ecto.Query, warn: false
 
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Adverts.{Advert, Restrictions, Server, Uploader}
   alias Philomena.Attribution.Actor
@@ -166,7 +166,7 @@ defmodule Philomena.Adverts do
   """
   @spec new_advert(Actor.t()) :: {:ok, Ecto.Changeset.t()} | Authorization.write_error()
   def new_advert(%Actor{} = actor) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :advert),
          :ok <- authorize(actor, :new, Advert) do
       {:ok, Advert.changeset(%Advert{})}
     end
@@ -189,7 +189,7 @@ defmodule Philomena.Adverts do
   @spec create_advert(Actor.t(), map(), PhilomenaMedia.Upload.t() | nil) ::
           {:ok, Advert.t()} | Authorization.write_error() | {:error, Ecto.Changeset.t()}
   def create_advert(%Actor{} = actor, attrs, upload) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :advert),
          :ok <- authorize(actor, :create, Advert) do
       advert_changeset =
         %Advert{}
@@ -233,7 +233,7 @@ defmodule Philomena.Adverts do
           {:ok, {Advert.t(), Ecto.Changeset.t()}}
           | {:error, Authorization.write_error_reason() | :not_found}
   def edit_advert(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :advert),
          {:ok, advert} <- load_advert(actor, :edit, id) do
       {:ok, {advert, Advert.changeset(advert)}}
     end
@@ -264,7 +264,7 @@ defmodule Philomena.Adverts do
           {:ok, Advert.t()}
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def update_advert(%Actor{} = actor, id, attrs) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :advert),
          {:ok, advert} <- load_advert(actor, :update, id) do
       advert_changeset = Advert.changeset(advert, attrs)
 
@@ -304,7 +304,7 @@ defmodule Philomena.Adverts do
   @spec delete_advert(Actor.t(), Loader.integer_id()) ::
           {:ok, Advert.t()} | {:error, Authorization.write_error_reason() | :not_found}
   def delete_advert(%Actor{} = actor, id) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :advert),
          {:ok, advert} <- load_advert(actor, :delete, id) do
       Multi.new()
       |> Multi.delete(:advert, Advert.remove_image_changeset(advert))
@@ -348,7 +348,7 @@ defmodule Philomena.Adverts do
           {:ok, Advert.t()}
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def update_advert_image(%Actor{} = actor, id, upload) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :advert),
          {:ok, advert} <- load_advert(actor, :update_image, id) do
       advert_changeset =
         advert

@@ -4,7 +4,7 @@ defmodule Philomena.Conversations do
   """
 
   import Ecto.Query, warn: false
-  import Philomena.Authorization, only: [authorize: 3, verify_write_access: 1]
+  import Philomena.Authorization, only: [authorize: 3, verify_scoped_write_access: 2]
 
   alias Philomena.Multi
   alias Philomena.Attribution.Actor
@@ -195,7 +195,7 @@ defmodule Philomena.Conversations do
   @spec new_conversation(Actor.t(), term()) ::
           {:ok, Ecto.Changeset.t()} | {:error, :ban | :unauthorized}
   def new_conversation(%Actor{} = actor, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :create_conversation),
          :ok <- authorize(actor, :new, Conversation) do
       conversation = %Conversation{messages: [%Message{}]}
 
@@ -224,7 +224,7 @@ defmodule Philomena.Conversations do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :rate_limited}
   def create_conversation(%Actor{user: user} = actor, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :create_conversation),
          :ok <- authorize(actor, :create, Conversation),
          {:ok, recipient_name} <- Conversation.recipient_name(params) do
       recipient =
@@ -314,7 +314,7 @@ defmodule Philomena.Conversations do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found | Ecto.Changeset.t()}
   def create_message(%Actor{user: user} = actor, slug, params) do
-    with :ok <- verify_write_access(actor),
+    with :ok <- verify_scoped_write_access(actor, :create_message),
          {:ok, conversation} <- load_conversation(actor, slug, :reply) do
       message_count_query =
         from message in Message,
