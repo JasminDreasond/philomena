@@ -32,11 +32,11 @@
 
     = hidden_input f, :permitted_actions, value: ""
 
-    = for action <- PhilomenaWeb.BanReasonHelper.available_actions() do
+    = for {action_key, metadata} <- PhilomenaWeb.BanReasonHelper.available_actions() do
       .field
-        - is_checked = Enum.any?(Ecto.Changeset.get_field(@changeset, :permitted_actions, []), fn pa -> pa.action == action end)
-        => checkbox f, :permitted_actions, name: "#{f.name}[permitted_actions][]", checked_value: action, hidden_input: false, checked: is_checked, id: "#{f.id}_permitted_actions_#{action}"
-        = label f, :permitted_actions, action, for: "#{f.id}_permitted_actions_#{action}"
+        - is_checked = Enum.any?(Ecto.Changeset.get_field(@changeset, :permitted_actions, []), fn pa -> pa.action == action_key end)
+        => checkbox f, :permitted_actions, name: "#{f.name}[permitted_actions][]", checked_value: action_key, hidden_input: false, checked: is_checked, id: "#{f.id}_permitted_actions_#{action_key}"
+        = label f, :permitted_actions, metadata.title, for: "#{f.id}_permitted_actions_#{action_key}"
 
   br
 
