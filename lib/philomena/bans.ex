@@ -210,7 +210,8 @@ defmodule Philomena.Bans do
   def update_fingerprint_ban(%Actor{} = actor, id, attrs) do
     with :ok <- verify_write_access(actor),
          {:ok, fingerprint_ban} <- load_ban(actor, Fingerprint, id, :update, [:permitted_actions]) do
-      fingerprint_changeset = Fingerprint.changeset(fingerprint_ban, transform_permitted_actions(attrs))
+      fingerprint_changeset =
+        Fingerprint.changeset(fingerprint_ban, transform_permitted_actions(attrs))
 
       Multi.new()
       |> Multi.update(:fingerprint, fingerprint_changeset)
@@ -717,7 +718,7 @@ defmodule Philomena.Bans do
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def update_user_ban(%Actor{} = actor, id, attrs) do
     with :ok <- verify_write_access(actor),
-          {:ok, user_ban} <- load_ban(actor, User, id, :update, [:user, :permitted_actions]) do
+         {:ok, user_ban} <- load_ban(actor, User, id, :update, [:user, :permitted_actions]) do
       user_changeset = User.changeset(user_ban, transform_permitted_actions(attrs))
 
       Multi.new()
@@ -834,20 +835,30 @@ defmodule Philomena.Bans do
       nil ->
         attrs
 
+      "" ->
+        if Map.has_key?(attrs, "permitted_actions"),
+          do: Map.put(attrs, "permitted_actions", []),
+          else: Map.put(attrs, :permitted_actions, [])
+
       actions when is_list(actions) ->
         transformed =
           Enum.map(actions, fn
             action when is_atom(action) -> %{action: Atom.to_string(action)}
-            action when is_binary(action) -> %{action: action}
+            action when is_binary(action) and action != "" -> %{action: action}
             %{} = action -> action
             _ -> nil
           end)
           |> Enum.reject(&is_nil/1)
 
         cond do
-          Map.has_key?(attrs, "permitted_actions") -> Map.put(attrs, "permitted_actions", transformed)
-          Map.has_key?(attrs, :permitted_actions) -> Map.put(attrs, :permitted_actions, transformed)
-          true -> attrs
+          Map.has_key?(attrs, "permitted_actions") ->
+            Map.put(attrs, "permitted_actions", transformed)
+
+          Map.has_key?(attrs, :permitted_actions) ->
+            Map.put(attrs, :permitted_actions, transformed)
+
+          true ->
+            attrs
         end
 
       _ ->

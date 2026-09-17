@@ -33,6 +33,8 @@
       span.block__header__title Allow Actions
     p.help-text.instruction When enabled, this banned user will retain access to this specific resource
 
+    = hidden_input f, :permitted_actions, value: ""
+
     = for action <- PhilomenaWeb.BanReasonHelper.available_actions() do
       .field
         - is_checked = Enum.any?(Ecto.Changeset.get_field(@changeset, :permitted_actions, []), fn pa -> pa.action == action end)
