@@ -179,7 +179,7 @@ defmodule Philomena.Bans do
           | {:error, Authorization.write_error_reason() | :not_found}
   def edit_fingerprint_ban(%Actor{} = actor, id) do
     with :ok <- verify_write_access(actor),
-         {:ok, fingerprint_ban} <- load_ban(actor, Fingerprint, id, :edit) do
+         {:ok, fingerprint_ban} <- load_ban(actor, Fingerprint, id, :edit, [:permitted_actions]) do
       {:ok, {fingerprint_ban, Fingerprint.changeset(fingerprint_ban)}}
     end
   end
@@ -209,7 +209,7 @@ defmodule Philomena.Bans do
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def update_fingerprint_ban(%Actor{} = actor, id, attrs) do
     with :ok <- verify_write_access(actor),
-         {:ok, fingerprint_ban} <- load_ban(actor, Fingerprint, id, :update) do
+         {:ok, fingerprint_ban} <- load_ban(actor, Fingerprint, id, :update, [:permitted_actions]) do
       fingerprint_changeset = Fingerprint.changeset(fingerprint_ban, transform_permitted_actions(attrs))
 
       Multi.new()
@@ -428,7 +428,7 @@ defmodule Philomena.Bans do
           | {:error, Authorization.write_error_reason() | :not_found}
   def edit_subnet_ban(%Actor{} = actor, id) do
     with :ok <- verify_write_access(actor),
-         {:ok, subnet_ban} <- load_ban(actor, Subnet, id, :edit) do
+         {:ok, subnet_ban} <- load_ban(actor, Subnet, id, :edit, [:permitted_actions]) do
       {:ok, {subnet_ban, Subnet.changeset(subnet_ban)}}
     end
   end
@@ -458,7 +458,7 @@ defmodule Philomena.Bans do
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def update_subnet_ban(%Actor{} = actor, id, attrs) do
     with :ok <- verify_write_access(actor),
-         {:ok, subnet_ban} <- load_ban(actor, Subnet, id, :update) do
+         {:ok, subnet_ban} <- load_ban(actor, Subnet, id, :update, [:permitted_actions]) do
       subnet_changeset = Subnet.changeset(subnet_ban, transform_permitted_actions(attrs))
 
       Multi.new()
@@ -549,7 +549,7 @@ defmodule Philomena.Bans do
         ip ->
           %Subnet{banning_user_id: creator.id}
           |> Subnet.paired_ban_changeset(%{specification: ip})
-          |> Subnet.changeset(attrs)
+          |> Subnet.changeset(transform_permitted_actions(attrs))
           |> repo.insert()
       end
     end)
@@ -660,7 +660,7 @@ defmodule Philomena.Bans do
         {:ok, %{user: %User{} = user}} ->
           {:ok, user}
 
-        {:error, :user, %Ecto.Changeset{} = changeset, _changes} ->
+        {:error, _operation, %Ecto.Changeset{} = changeset, _changes} ->
           {:error, changeset}
       end
     end
@@ -687,7 +687,7 @@ defmodule Philomena.Bans do
           | {:error, Authorization.write_error_reason() | :not_found}
   def edit_user_ban(%Actor{} = actor, id) do
     with :ok <- verify_write_access(actor),
-         {:ok, user_ban} <- load_ban(actor, User, id, :edit, [:user]) do
+         {:ok, user_ban} <- load_ban(actor, User, id, :edit, [:user, :permitted_actions]) do
       {:ok, {user_ban, User.changeset(user_ban)}}
     end
   end
@@ -717,8 +717,8 @@ defmodule Philomena.Bans do
           | {:error, Authorization.write_error_reason() | :not_found | Ecto.Changeset.t()}
   def update_user_ban(%Actor{} = actor, id, attrs) do
     with :ok <- verify_write_access(actor),
-         {:ok, user_ban} <- load_ban(actor, User, id, :update, [:user]) do
-      user_changeset = User.changeset(user_ban, attrs)
+          {:ok, user_ban} <- load_ban(actor, User, id, :update, [:user, :permitted_actions]) do
+      user_changeset = User.changeset(user_ban, transform_permitted_actions(attrs))
 
       Multi.new()
       |> Multi.update(:user, user_changeset)
@@ -844,7 +844,14 @@ defmodule Philomena.Bans do
           end)
           |> Enum.reject(&is_nil/1)
 
-        Map.put(attrs, "permitted_actions", transformed)
+        cond do
+          Map.has_key?(attrs, "permitted_actions") -> Map.put(attrs, "permitted_actions", transformed)
+          Map.has_key?(attrs, :permitted_actions) -> Map.put(attrs, :permitted_actions, transformed)
+          true -> attrs
+        end
+
+      _ ->
+        attrs
     end
   end
 
