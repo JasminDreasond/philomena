@@ -809,27 +809,6 @@ defmodule Philomena.Bans do
     Finder.find(user, ip, fingerprint)
   end
 
-  @doc """
-  Checks if a user is banned for a specific granular reason.
-  """
-  def is_banned?(nil, _reason), do: false
-
-  def is_banned?(user, reason) when is_atom(reason) do
-    is_banned?(user, reason, nil, nil)
-  end
-
-  def is_banned?(user, reason, ip, fingerprint) when is_atom(reason) do
-    bans = Finder.find(user, ip, fingerprint)
-
-    Enum.any?(List.wrap(bans), fn ban ->
-      if PhilomenaWeb.BanReasonHelper.any_granular_ban?(ban) do
-        !PhilomenaWeb.BanReasonHelper.has_action?(ban, reason)
-      else
-        true
-      end
-    end)
-  end
-
   defp transform_permitted_actions(attrs) when is_map(attrs) do
     case Map.get(attrs, "permitted_actions") || Map.get(attrs, :permitted_actions) do
       nil ->

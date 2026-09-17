@@ -124,7 +124,6 @@ defmodule PhilomenaWeb.BanReasonHelper do
     "post_forum",
     "reply_forum",
     "send_pm",
-    "api_key",
     "manage_filters",
     "manage_galleries",
     "manage_tags",
