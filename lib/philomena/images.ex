@@ -1648,7 +1648,7 @@ defmodule Philomena.Images do
           | {:error, Ecto.Changeset.t()}
           | {:error, :ban | :unauthorized | :not_found}
   def create_image_approve(%Actor{} = actor, image_id) do
-    with :ok <- verify_scoped_write_access(actor, :image_aprove),
+    with :ok <- verify_scoped_write_access(actor, :image_approve),
          {:ok, image} <- load_image_member(actor, :approve, image_id) do
       Multi.new()
       |> Multi.lock_one(:locked_image, where(Image, id: ^image.id))
