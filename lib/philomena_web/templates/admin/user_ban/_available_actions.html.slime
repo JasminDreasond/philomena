@@ -4,7 +4,7 @@
   p.help-text.instruction When enabled, this banned user will retain access to this specific resource
 
   / Global Selection Buttons
-  .global-actions.mb-3
+  .global-actions
     button.button.js-select-all-global style="margin-right: 5px;" type="button" Select All
     button.button.js-deselect-all-global type="button" Deselect All
   br
@@ -13,8 +13,8 @@
 
   = for {category, actions} <- PhilomenaWeb.BanReasonHelper.actions_grouped_by_category() do
     / Collapsible structure
-    details.category-section.mb-2 open=false
-      summary.category-header.p-2 style="cursor: pointer; user-select: none;"
+    details.category-section open=false
+      summary.category-header style="cursor: pointer;"
         h4.category-title style="display: inline-block; margin: 0;" = category
         
         / Category Buttons

@@ -36,21 +36,24 @@
             summary style="cursor: pointer;"
               h3 style="display: inline-block; margin-top: 9px; margin-bottom: 9px; margin-left: 5px;" = category
 
-            table.table
-              thead
-                tr
-                  th Feature
-                  th Description
-                  th Status
-              tbody
-                = for {action_key, metadata} <- actions do
-                  - has_access = !@conn.assigns.current_ban || PhilomenaWeb.BanReasonHelper.has_action?(@conn.assigns.current_ban, action_key)
+            = if Enum.empty?(actions) do
+              p style="padding: 15px; color: var(--text-muted); font-style: italic; text-align: center;" There are no features available for your access level in this category.
+            - else
+              table.table
+                thead
                   tr
-                    td
-                      strong = metadata.title
-                    td = metadata.description
-                    td
-                      = if has_access do
-                        span.tag Allowed
-                      - else
-                        span.tag style="--tag-background: var(--tag-category-error-background); --tag-border: var(--tag-category-error-border); --tag-color: var(--tag-category-error-color);" Restricted
+                    th Feature
+                    th Description
+                    th Status
+                tbody
+                  = for {action_key, metadata} <- actions do
+                    - has_access = !@conn.assigns.current_ban || PhilomenaWeb.BanReasonHelper.has_action?(@conn.assigns.current_ban, action_key)
+                    tr
+                      td
+                        strong = metadata.title
+                      td = metadata.description
+                      td
+                        = if has_access do
+                          span.tag Allowed
+                        - else
+                          span.tag style="--tag-background: var(--tag-category-error-background); --tag-border: var(--tag-category-error-border); --tag-color: var(--tag-category-error-color);" Restricted
