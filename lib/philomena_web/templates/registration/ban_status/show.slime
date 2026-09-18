@@ -18,6 +18,13 @@
       strong All good!
       |  Your account is in good standing and has no active restrictions.
 
+  = if Enum.any?(@bans) do
+    .block
+      .block__header--single-item
+        ' Ban History
+      .block__content
+        = render PhilomenaWeb.BanView, "_bans.html", bans: @bans, conn: @conn
+
   .block
     .block__header
       span.block__header__title Feature Access & Restrictions
@@ -25,23 +32,25 @@
     .block__content
       = for {category, actions} <- @grouped_actions do
         .field
-          h3 style="margin-top: 9px; margin-bottom: 9px;" = category
+          details open=true
+            summary style="cursor: pointer;"
+              h3 style="display: inline-block; margin-top: 9px; margin-bottom: 9px; margin-left: 5px;" = category
 
-          table.table
-            thead
-              tr
-                th Feature
-                th Description
-                th Status
-            tbody
-              = for {action_key, metadata} <- actions do
-                - has_access = !@conn.assigns.current_ban || PhilomenaWeb.BanReasonHelper.has_action?(@conn.assigns.current_ban, action_key)
+            table.table
+              thead
                 tr
-                  td
-                    strong = metadata.title
-                  td = metadata.description
-                  td
-                    = if has_access do
-                      span.tag Allowed
-                    - else
-                      span.tag style="--tag-background: var(--tag-category-error-background); --tag-border: var(--tag-category-error-border); --tag-color: var(--tag-category-error-color);" Restricted
+                  th Feature
+                  th Description
+                  th Status
+              tbody
+                = for {action_key, metadata} <- actions do
+                  - has_access = !@conn.assigns.current_ban || PhilomenaWeb.BanReasonHelper.has_action?(@conn.assigns.current_ban, action_key)
+                  tr
+                    td
+                      strong = metadata.title
+                    td = metadata.description
+                    td
+                      = if has_access do
+                        span.tag Allowed
+                      - else
+                        span.tag style="--tag-background: var(--tag-category-error-background); --tag-border: var(--tag-category-error-border); --tag-color: var(--tag-category-error-color);" Restricted
