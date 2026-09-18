@@ -7,6 +7,7 @@ import './ujs';
 
 import { whenReady } from './utils/dom';
 
+import { setupBanReasonsCheckbox } from './admin/ban';
 import { listenAutocomplete } from './autocomplete';
 import { loadBooruData } from './booru';
 import { registerEvents } from './boorujs';
@@ -48,6 +49,7 @@ whenReady(
   setSesCookie,
   setupGalleryEditing,
   bindImageTarget,
+  setupBanReasonsCheckbox,
   setupEvents,
   setupNotifications,
   setupPreviews,

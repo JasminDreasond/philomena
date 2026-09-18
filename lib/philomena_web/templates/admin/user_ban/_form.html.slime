@@ -25,28 +25,7 @@
     = label f, :enabled
 
   br
-  .block
-    .block__header
-      span.block__header__title Allow Actions
-    p.help-text.instruction When enabled, this banned user will retain access to this specific resource
-
-    = hidden_input f, :permitted_actions, value: ""
-
-    = for {category, actions} <- PhilomenaWeb.BanReasonHelper.actions_grouped_by_category() do
-      .category-section
-        h4.category-title= category
-        
-        = for {action_key, metadata} <- actions do
-          .field
-            - current_actions = Ecto.Changeset.get_field(@changeset, :permitted_actions, [])
-            - is_checked = if Enum.empty?(current_actions), do: metadata.default_value, else: Enum.any?(current_actions, fn pa -> pa.action == action_key end)
-            => checkbox f, :permitted_actions, name: "#{f.name}[permitted_actions][]", checked_value: action_key, hidden_input: false, checked: is_checked, id: "#{f.id}_permitted_actions_#{action_key}"
-            = label f, :permitted_actions, metadata.title, for: "#{f.id}_permitted_actions_#{action_key}"
-            
-            - if metadata.description != "" do
-              p.action-description= metadata.description
-            
-            = error_tag f, :permitted_actions
+  = render "_available_actions.html", f: f, changeset: @changeset
 
   br
 
