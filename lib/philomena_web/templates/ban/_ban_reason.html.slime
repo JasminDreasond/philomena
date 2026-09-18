@@ -14,3 +14,5 @@
     ' (Ban ID:
     = @conn.assigns.current_ban.generated_ban_id
     ' ).
+  p
+  = link "View detailed account standing", to: ~p"/registrations/ban_status"
