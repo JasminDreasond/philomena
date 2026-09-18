@@ -7,7 +7,7 @@ defmodule PhilomenaWeb.Registration.BanStatusController do
     grouped_actions = BanReasonHelper.actions_grouped_by_category()
 
     render(conn, "show.html",
-      page_title: "Account Standing",
+      title: "Account Standing",
       grouped_actions: grouped_actions
     )
   end
