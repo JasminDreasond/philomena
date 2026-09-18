@@ -36,15 +36,15 @@ defmodule PhilomenaWeb.Registration.BanStatusController do
 
     # Filter actions based on the user's role before sending them to the template
     grouped_actions =
-    BanReasonHelper.actions_grouped_by_category()
-    |> Enum.map(fn {category, actions} ->
-      filtered_actions =
-        Enum.filter(actions, fn {_action_key, metadata} ->
-          can_view_role?(user_role, metadata.role)
-        end)
+      BanReasonHelper.actions_grouped_by_category()
+      |> Enum.map(fn {category, actions} ->
+        filtered_actions =
+          Enum.filter(actions, fn {_action_key, metadata} ->
+            can_view_role?(user_role, metadata.role)
+          end)
 
-      {category, filtered_actions}
-    end)
+        {category, filtered_actions}
+      end)
 
     render(conn, "show.html",
       title: "Account Standing",

@@ -473,7 +473,7 @@ defmodule PhilomenaWeb.BanReasonHelper do
       role: "user",
       default_value: false
     },
-    "image_aprove" => %{
+    "image_approve" => %{
       title: "Image Approve",
       description: "",
       category: "Content Management",
