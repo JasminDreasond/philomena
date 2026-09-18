@@ -3,9 +3,7 @@ import { $$, $ } from '../utils/dom';
 export function setupBanReasonsCheckbox() {
   const selectButtonTemplate = (select: HTMLElement | null, checked: boolean) => {
     select?.addEventListener('click', () => {
-      $$<HTMLInputElement>('input[type="checkbox"].js-permitted-action-checkbox').forEach(
-        cb => (cb.checked = checked)
-      );
+      $$<HTMLInputElement>('input[type="checkbox"].js-permitted-action-checkbox').forEach(cb => (cb.checked = checked));
     });
   };
 
@@ -15,13 +13,11 @@ export function setupBanReasonsCheckbox() {
   const selectCategoryButtonTemplate = (selects: HTMLElement[], checked: boolean) => {
     if (!selects) return;
     for (const select of selects) {
-      select.addEventListener('click', (e) => {
+      select.addEventListener('click', e => {
         e.stopPropagation();
         const section = select.closest('.category-section');
         if (section) {
-          $$<HTMLInputElement>('.js-permitted-action-checkbox', section).forEach(
-            cb => (cb.checked = checked)
-          );
+          $$<HTMLInputElement>('.js-permitted-action-checkbox', section).forEach(cb => (cb.checked = checked));
         }
       });
     }

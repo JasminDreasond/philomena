@@ -107,6 +107,7 @@ defmodule PhilomenaWeb.Router do
       resources "/totp", TotpController, only: [:edit, :update], singleton: true
       resources "/name", NameController, only: [:edit, :update], singleton: true
       resources "/password", PasswordController, only: [:update], singleton: true
+      resources "/ban_status", BanStatusController, only: [:show], singleton: true
       resources "/email", EmailController, only: [:create, :show]
     end
   end

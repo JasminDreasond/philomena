@@ -1,0 +1,47 @@
+.layout-single-col
+  h1 Account Standing
+
+  = if @conn.assigns.current_ban do
+    - all_actions = Enum.flat_map(@grouped_actions, fn {_cat, actions} -> actions end)
+    - has_any_access = Enum.any?(all_actions, fn {action_key, _meta} -> PhilomenaWeb.BanReasonHelper.has_action?(@conn.assigns.current_ban, action_key) end)
+
+    = if has_any_access do
+      .flash.flash--warning
+        strong Notice:
+        |  Your account currently has active restrictions. Please review the details below.
+    - else
+      .flash.flash--danger
+        strong Severe Notice:
+        |  Your account is fully restricted. You currently do not have permission to use any interactive features.
+  - else
+    .flash.flash--success
+      strong All good!
+      |  Your account is in good standing and has no active restrictions.
+
+  .block
+    .block__header
+      span.block__header__title Feature Access & Restrictions
+
+    .block__content
+      = for {category, actions} <- @grouped_actions do
+        .field
+          h3 style="margin-top: 9px; margin-bottom: 9px;" = category
+
+          table.table
+            thead
+              tr
+                th Feature
+                th Description
+                th Status
+            tbody
+              = for {action_key, metadata} <- actions do
+                - has_access = !@conn.assigns.current_ban || PhilomenaWeb.BanReasonHelper.has_action?(@conn.assigns.current_ban, action_key)
+                tr
+                  td
+                    strong = metadata.title
+                  td = metadata.description
+                  td
+                    = if has_access do
+                      span.tag Allowed
+                    - else
+                      span.tag style="--tag-background: var(--tag-category-error-background); --tag-border: var(--tag-category-error-border); --tag-color: var(--tag-category-error-color);" Restricted

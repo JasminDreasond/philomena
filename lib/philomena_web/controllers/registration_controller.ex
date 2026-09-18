@@ -4,6 +4,7 @@ defmodule PhilomenaWeb.RegistrationController do
   alias PhilomenaWeb.UserAuth
   alias Philomena.Users
   alias Philomena.Users.User
+  alias PhilomenaWeb.BanReasonHelper
 
   action_fallback PhilomenaWeb.FallbackController
 
@@ -44,13 +45,15 @@ defmodule PhilomenaWeb.RegistrationController do
 
   def edit(conn, _params) do
     user = conn.assigns.current_user
+    grouped_actions = BanReasonHelper.actions_grouped_by_category()
 
     render(
       conn,
       "edit.html",
       title: "Account Settings",
       email_changeset: Users.change_user_email(user),
-      password_changeset: Users.edit_password(user)
+      password_changeset: Users.edit_password(user),
+      grouped_actions: grouped_actions
     )
   end
 end

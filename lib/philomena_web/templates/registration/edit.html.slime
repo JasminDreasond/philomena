@@ -17,6 +17,30 @@ p
     ' Looking to change your username?
     = link "Click here!", to: ~p"/registrations/name/edit"
 
+h3 Account Standing
+= if @conn.assigns.current_ban do
+  - all_actions = Enum.flat_map(@grouped_actions, fn {_cat, actions} -> actions end)
+  - total_count = length(all_actions)
+  - restricted_count = Enum.count(all_actions, fn {action_key, _meta} -> not PhilomenaWeb.BanReasonHelper.has_action?(@conn.assigns.current_ban, action_key) end)
+  
+  = if restricted_count == total_count do
+    p
+      span.tag style="--tag-background: var(--tag-category-error-background); --tag-border: var(--tag-category-error-border); --tag-color: var(--tag-category-error-color);" Fully Restricted
+      |  Your account has lost all feature privileges.
+  - else
+    p
+      span.tag style="--tag-background: var(--tag-category-error-background); --tag-border: var(--tag-category-error-border); --tag-color: var(--tag-category-error-color);" Active Restrictions
+      |  Your account currently has 
+      strong = " #{restricted_count} "
+      |  restricted feature(s).
+- else
+  p
+    span.tag Good Standing
+    |  Your account has no active restrictions.
+
+p
+  = link "View detailed account standing", to: ~p"/registrations/ban_status"
+
 h3 API Key
 p
   ' Your API key is

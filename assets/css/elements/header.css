@@ -222,6 +222,11 @@ span.header__counter__admin {
   background: var(--warning-light-color);
 }
 
+.flash--danger {
+  color: var(--foreground-color);
+  background: var(--danger-light-color);
+}
+
 .flash--success {
   color: var(--foreground-color);
   background: var(--success-light-color);
